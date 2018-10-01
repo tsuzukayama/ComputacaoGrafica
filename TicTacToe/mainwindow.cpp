@@ -22,6 +22,8 @@ MainWindow::MainWindow(QWidget *parent) :
         QPushButton *button = new QPushButton(this);
 
         connect(button, &QPushButton::clicked, [button, this, i, j](){
+            button->setEnabled(false);
+
             char play = this->play(isPlayerTwoTurn);
             field[i][j] = play;
 
@@ -31,7 +33,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
             ui-> labelHasWinner->setText(isPlayerTwoTurn ? "Vez do X" : "Vez do O");
 
-            button->setEnabled(false);
 
             if(this-> hasWinner(field, play)) {
                 disableAllButtons();
@@ -65,14 +66,17 @@ bool MainWindow::hasWinner(char newField[3][3], char state) {
 }
 
 bool MainWindow::hasRowColumnWinner(char newField[3][3], char state) {
-    int countStates = 0;
+    int countStatesRow = 0;
+    int countStatesColumn = 0;
+
     // verificar por linha e coluna
     for(int i = 0; i < 3; i++) {
         for(int j = 0; j < 3; j++) {
-            if(newField[i][j] == state) countStates++;
+            if(newField[i][j] == state) countStatesRow++;
+            if(newField[j][i] == state) countStatesColumn++;
         }
-        if(countStates == 3) return true;
-        countStates = 0;
+        if(countStatesRow == 3 || countStatesColumn == 3) return true;
+        countStatesRow = 0;
     }
     return false;
 }

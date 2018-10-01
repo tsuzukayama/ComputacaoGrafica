@@ -34,9 +34,12 @@ MainWindow::MainWindow(QWidget *parent) :
             button->setEnabled(false);
 
             if(this-> hasWinner(field, play)) {
+                disableAllButtons();
                 ui->labelHasWinner->setText(QString(play) + " ganhou");
+
             }
             else if (this->isDraw(field)) {
+                disableAllButtons();
                 ui->labelHasWinner->setText("Draw");
             }
         });
@@ -121,5 +124,12 @@ void MainWindow::newGame() {
     }
 
     isPlayerTwoTurn = false;
+}
+
+void MainWindow::disableAllButtons() {
+    QList<QPushButton *> buttons = ui->gridLayoutWidget->findChildren<QPushButton *>();
+    for(const auto button: buttons) {
+        button->setEnabled(false);
+    }
 }
 

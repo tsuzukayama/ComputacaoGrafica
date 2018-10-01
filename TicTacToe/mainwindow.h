@@ -31,6 +31,7 @@ private:
     bool isDraw(char field[3][3]);
 
     Ui::MainWindow *ui;
+    void disableAllButtons();
 };
 
 #endif // MAINWINDOW_H

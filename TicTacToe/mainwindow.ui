@@ -91,7 +91,7 @@
         <enum>Qt::LeftToRight</enum>
        </property>
        <property name="text">
-        <string>TextLabel</string>
+        <string>Vez do O</string>
        </property>
       </widget>
      </item>

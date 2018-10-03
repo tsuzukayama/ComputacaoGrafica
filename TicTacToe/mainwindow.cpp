@@ -20,6 +20,7 @@ MainWindow::MainWindow(QWidget *parent) :
         for (int j = 0; j < 3; ++j) {
 
         QPushButton *button = new QPushButton(this);
+        button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
         connect(button, &QPushButton::clicked, [button, this, i, j](){
             button->setEnabled(false);

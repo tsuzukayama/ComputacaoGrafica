@@ -321,21 +321,22 @@ void OpenGLWidget::animate()
     {
         if (position[i].x() >= 1) {
             xAtEnd = false;
-            changeDiagonal(false);
         }
         else if (position[i].x() <= -1) {
             xAtEnd = true;
-            changeDiagonal(true);
         }
 
         if (position[i].y() >= 1) {
             yAtEnd = false;
-            changeDiagonal(false);
         }
         else if (position[i].y() <= -1) {
             yAtEnd = true;
-            changeDiagonal(true);
         }
+
+        if(position[i].x() >= 1 || position[i].x() <= -1 || position[i].y() >= 1 || position[i].y() <= -1 ) {
+            toggleColor = !toggleColor;
+        }
+        changeDiagonal(toggleColor);
 
         if(xAtEnd) {
             position[i].setX(position[i].x() + speed * elapsedTime * signal);
@@ -345,7 +346,7 @@ void OpenGLWidget::animate()
 
         if(yAtEnd) {
             position[i].setY(position[i].y() + speed * elapsedTime * signal);
-        } else {
+        } else {            
             position[i].setY(position[i].y() - speed * elapsedTime * signal);
         }
     }

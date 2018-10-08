@@ -23,6 +23,7 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
     float m_red = 0, m_green = 0, m_blue = 0;
     bool xAtEnd = false;
     bool yAtEnd = false;
+    bool toggleColor = false;
 
     int indexAtEnd = 5;
 

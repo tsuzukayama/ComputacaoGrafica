@@ -18,18 +18,14 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
     GLuint shaderProgram;
 
     std::unique_ptr<QVector4D []> vertices = nullptr;
-    std::unique_ptr<unsigned int []> colors = nullptr;
+    std::unique_ptr<float []> colors = nullptr;
     std::unique_ptr<unsigned int []> indices = nullptr;
 
     QVector3D squarePos[NUM_SQUARE];
 
     int m_width, m_height;
-    float m_red = 0, m_green = 0, m_blue = 0;
     bool xAtEnd[NUM_SQUARE];
     bool yAtEnd[NUM_SQUARE];
-    bool toggleColor = false;
-
-    int indexAtEnd = 5;
 
     QTimer timer;
     QTime time;
@@ -47,12 +43,6 @@ signals:
 
 public slots:
     void animate();
-    void toggleBackgroundColor(bool checked);
-    void changeDiagonal(bool checked);
-    void changeFirstVertexColor(float r, float g, float b);
-    void redSliderChanged(int value);
-    void greenSliderChanged(int value);
-    void blueSliderChanged(int value);
 
 protected:
     void initializeGL();

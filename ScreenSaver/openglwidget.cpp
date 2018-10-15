@@ -62,18 +62,6 @@ void OpenGLWidget::paintGL()
         glDrawElements(GL_TRIANGLES, 2*3, GL_UNSIGNED_INT, nullptr);
     }
 }
-
-void OpenGLWidget::toggleBackgroundColor(bool checked)
-{
-    makeCurrent();
-    if (checked)
-        glClearColor(1, 1, 1, 1);
-    else
-        glClearColor(0, 0, 0, 1);
-
-    update();
-}
-
 void OpenGLWidget::createShaders()
 {
     makeCurrent();
@@ -193,7 +181,7 @@ void OpenGLWidget::createVBOs()
     destroyVBOs();
 
     vertices = std::make_unique<QVector4D []>(4);
-    colors = std::make_unique<unsigned int []>(4);
+    colors = std::make_unique<float []>(4);
     indices = std::make_unique<unsigned int []>(2 * 3);
 
     // Four vertices to define a square
@@ -203,10 +191,10 @@ void OpenGLWidget::createVBOs()
     vertices[3] = QVector4D(-0.4,  0.5, 0, 1) * 0.1;
 
     // Vertex colors
-    colors[0] = 1; // Red
-    colors[1] = 1; // Green
-    colors[2] = 1; // Blue
-    colors[3] = 1; // Yellow
+    colors[0] = 0.5; // Red
+    colors[1] = 0.5; // Green
+    colors[2] = 0.5; // Blue
+    colors[3] = 0.5; // Yellow
 
     // Topology of the mesh ( two triangles that form a square )
     indices[0] = 0;
@@ -228,7 +216,7 @@ void OpenGLWidget::createVBOs()
 
     glGenBuffers(1, &vboColors);
     glBindBuffer(GL_ARRAY_BUFFER, vboColors);
-    glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(unsigned int), colors.get(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(float), colors.get(), GL_STATIC_DRAW);
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(1);
 
@@ -254,73 +242,6 @@ void OpenGLWidget::destroyVBOs()
     vboIndices = 0;
     vboColors = 0;
     vao = 0;
-}
-
-void OpenGLWidget::changeFirstVertexColor(float r, float g, float b)
-{
-    makeCurrent();
-    glBindBuffer(GL_ARRAY_BUFFER, vboColors);
-
-    QVector4D *colors = (QVector4D *) glMapBufferRange(
-                GL_ARRAY_BUFFER,
-                0, 1 * sizeof (QVector4D),
-                GL_MAP_WRITE_BIT);
-
-    colors[0] = QVector4D(r, g, b, 1);
-
-    glUnmapBuffer(GL_ARRAY_BUFFER);
-    update();
-}
-
-void OpenGLWidget::changeDiagonal(bool checked)
-{
-    makeCurrent();
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIndices);
-    unsigned int *idx = (unsigned int *) glMapBufferRange(
-                GL_ELEMENT_ARRAY_BUFFER,
-                0, 2 * 3 * sizeof (unsigned int),
-                GL_MAP_WRITE_BIT );
-
-    if (checked)
-    {
-        idx[0] = 0;
-        idx[1] = 1;
-        idx[2] = 3;
-
-        idx[3] = 1;
-        idx[4] = 2;
-        idx[5] = 3;      
-    }
-    else
-    {
-        idx[0] = 0;
-        idx[1] = 1;
-        idx[2] = 2;
-
-        idx[3] = 2;
-        idx[4] = 3;
-        idx[5] = 0;
-    }
-    glUnmapBuffer (GL_ELEMENT_ARRAY_BUFFER);
-    update();
-}
-
-void OpenGLWidget::redSliderChanged(int value)
-{
-    m_red = value / 255.0f;
-    changeFirstVertexColor(m_red, m_green, m_blue);
-}
-
-void OpenGLWidget::greenSliderChanged(int value)
-{
-    m_green = value / 255.0f;
-    changeFirstVertexColor(m_red, m_green, m_blue);
-}
-
-void OpenGLWidget::blueSliderChanged(int value)
-{
-    m_blue = value / 255.0f;
-    changeFirstVertexColor(m_red, m_green, m_blue);
 }
 
 void OpenGLWidget::animate()

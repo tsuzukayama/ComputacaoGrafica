@@ -14,6 +14,7 @@ void main()
     float mixValue = distance(vec2(rand(vec2(0.5,0.2)), rand(vec2(0.5,0.9))),vec2(0,0.1));
     vec3 color = mix(color1,color2,mixValue);
     myfragcolor = vec4(color, mixValue);
+    // myfragcolor = v2fcolor;
 }
 
 

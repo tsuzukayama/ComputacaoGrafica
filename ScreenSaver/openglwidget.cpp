@@ -1,16 +1,11 @@
 #include "openglwidget.h"
 
 OpenGLWidget::OpenGLWidget(QWidget *parent) : QOpenGLWidget(parent)
-{
-    time.start();
-    timer.start(0);
-    connect(&timer, SIGNAL(timeout()), this, SLOT(animate()));
+{    
 }
 
 OpenGLWidget::~OpenGLWidget()
-{
-    destroyVBOs();
-    destroyShaders();
+{    
 }
 
 void OpenGLWidget::initializeGL()
@@ -21,7 +16,26 @@ void OpenGLWidget::initializeGL()
     qDebug(" GLSL %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
     createShaders();
-    createVBOs();
+    createVBOs();    
+
+    for(int i=0; i<NUM_SQUARE; ++i)
+    {
+        QVector3D pos = squarePos[i];
+
+        float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
+        float radius = 1 + (qrand() / (float)RAND_MAX) * 2;
+        float x = cos(ang) * radius;
+        float y = sin(ang) * radius;
+        pos.setX(x);
+        pos.setY(y);
+        pos.setZ(((qrand() / (float)RAND_MAX) * 2.0f) - 1.0f);
+        squarePos[i] = pos;
+    }
+
+    time.start();
+    timer.start(0);
+    connect(&timer, SIGNAL(timeout()), this, SLOT(animate()));
+    glEnable(GL_DEPTH_TEST);
 }
 
 void OpenGLWidget::resizeGL(int width , int height)
@@ -36,11 +50,17 @@ void OpenGLWidget::paintGL()
     glViewport(0,
                0, m_width, m_height);
 
+    GLuint locTranslation = glGetUniformLocation(shaderProgram, "translation");
+
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(shaderProgram);
     glBindVertexArray(vao);
-    glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, nullptr);
+    for(int i=0; i<NUM_SQUARE; ++i)
+    {
+        glUniform4f(locTranslation, squarePos[i].x(), squarePos[i].y(), squarePos[i].z(), 0);
+        glDrawElements(GL_TRIANGLES, 2*3, GL_UNSIGNED_INT, nullptr);
+    }
 }
 
 void OpenGLWidget::toggleBackgroundColor(bool checked)
@@ -173,20 +193,20 @@ void OpenGLWidget::createVBOs()
     destroyVBOs();
 
     vertices = std::make_unique<QVector4D []>(4);
-    colors = std::make_unique<QVector4D []>(4);
+    colors = std::make_unique<unsigned int []>(4);
     indices = std::make_unique<unsigned int []>(2 * 3);
 
     // Four vertices to define a square
-    vertices[0] = QVector4D(-0.4, -0.5, 0, 1);
-    vertices[1] = QVector4D( 0.4, -0.5, 0, 1);
-    vertices[2] = QVector4D( 0.4,  0.5, 0, 1);
-    vertices[3] = QVector4D(-0.4,  0.5, 0, 1);
+    vertices[0] = QVector4D(-0.4, -0.5, 0, 1) * 0.1;
+    vertices[1] = QVector4D( 0.4, -0.5, 0, 1) * 0.1;
+    vertices[2] = QVector4D( 0.4,  0.5, 0, 1) * 0.1;
+    vertices[3] = QVector4D(-0.4,  0.5, 0, 1) * 0.1;
 
     // Vertex colors
-    colors[0] = QVector4D(1, 0, 0, 1); // Red
-    colors[1] = QVector4D(0, 1, 0, 1); // Green
-    colors[2] = QVector4D(0, 0, 1, 1); // Blue
-    colors[3] = QVector4D(1, 1, 0, 1); // Yellow
+    colors[0] = 1; // Red
+    colors[1] = 1; // Green
+    colors[2] = 1; // Blue
+    colors[3] = 1; // Yellow
 
     // Topology of the mesh ( two triangles that form a square )
     indices[0] = 0;
@@ -208,7 +228,7 @@ void OpenGLWidget::createVBOs()
 
     glGenBuffers(1, &vboColors);
     glBindBuffer(GL_ARRAY_BUFFER, vboColors);
-    glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(QVector4D), colors.get(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(unsigned int), colors.get(), GL_STATIC_DRAW);
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(1);
 
@@ -305,53 +325,54 @@ void OpenGLWidget::blueSliderChanged(int value)
 
 void OpenGLWidget::animate()
 {
-    makeCurrent();
-    glBindBuffer(GL_ARRAY_BUFFER, vboVertices);
-
-    QVector4D *position = (QVector4D *) glMapBufferRange(
-                GL_ARRAY_BUFFER,
-                0, 4 * sizeof (QVector4D),
-                GL_MAP_WRITE_BIT);
 
     float elapsedTime = time.restart() / 1000.0f;
     float speed = 0.5f;
+    float zspeed = 0.05f;
     float signal = 1;
-
-    for (int i = 0; i < 4; ++i)
+    for(int s=0; s<NUM_SQUARE; ++s)
     {
-        if (position[i].x() >= 1) {
-            xAtEnd = false;
+        QVector3D pos = squarePos[s];
+        if (pos.x() >= 0.7f) {
+            xAtEnd[s] = false;
         }
-        else if (position[i].x() <= -1) {
-            xAtEnd = true;
-        }
-
-        if (position[i].y() >= 1) {
-            yAtEnd = false;
-        }
-        else if (position[i].y() <= -1) {
-            yAtEnd = true;
+        else if (pos.x() <= -0.7f) {
+            xAtEnd[s] = true;
         }
 
-        if(position[i].x() >= 1 || position[i].x() <= -1 || position[i].y() >= 1 || position[i].y() <= -1 ) {
-            toggleColor = !toggleColor;
+        if (pos.y() >= 0.7f) {
+            yAtEnd[s] = false;
         }
-        changeDiagonal(toggleColor);
+        else if (pos.y() <= -0.7f) {
+            yAtEnd[s] = true;
+        }
 
-        if(xAtEnd) {
-            position[i].setX(position[i].x() + speed * elapsedTime * signal);
+        if(xAtEnd[s]) {
+            pos.setX(pos.x() + speed * elapsedTime * signal);
         } else {
-            position[i].setX(position[i].x() - speed * elapsedTime * signal);
+            pos.setX(pos.x() - speed * elapsedTime * signal);
         }
 
-        if(yAtEnd) {
-            position[i].setY(position[i].y() + speed * elapsedTime * signal);
-        } else {            
-            position[i].setY(position[i].y() - speed * elapsedTime * signal);
+        if(yAtEnd[s]) {
+            pos.setY(pos.y() + speed * elapsedTime * signal);
+        } else {
+            pos.setY(pos.y() - speed * elapsedTime * signal);
         }
+        pos.setZ(pos.z() + zspeed * elapsedTime * signal);
+
+        if (pos.z() >= 1.0f)
+        {
+            float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
+            float radius = 1 + (qrand() / (float)RAND_MAX) * 2;
+            float x = cos(ang) * radius;
+            float y = sin(ang) * radius;
+            pos.setX(x);
+            pos.setY(y);
+            pos.setZ(-1.0f);
+
+        }
+
+        squarePos[s] = pos;
     }
-
-    glUnmapBuffer(GL_ARRAY_BUFFER);
-
     update();
 }

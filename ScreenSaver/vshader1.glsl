@@ -1,16 +1,14 @@
-# version 400
+#version 410
 
-// Input vertex attributes
 layout (location = 0) in vec4 vPosition;
-layout (location = 1) in vec4 vColors;
-
-// Output vertex attributes to be interpolated
-// for each fragment during rasterization
+layout (location = 0) in vec4 vColors;
 out vec4 v2fcolor;
+
+uniform vec4 translation;
 
 void main()
 {
-    // gl_Position is a mandatory built-in output variable
-    gl_Position = vPosition;
+    float scaling = (translation.z - 1) / 2;
+    gl_Position = (vPosition + translation) * vec4(scaling, scaling, scaling, 1);
     v2fcolor = vColors;
 }

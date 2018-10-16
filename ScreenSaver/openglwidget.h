@@ -11,14 +11,12 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
     Q_OBJECT
 
     GLuint vboVertices = 0;
-    GLuint vboColors = 0;
     GLuint vboIndices = 0;
     GLuint vao = 0;
 
     GLuint shaderProgram;
 
     std::unique_ptr<QVector4D []> vertices = nullptr;
-    std::unique_ptr<float []> colors = nullptr;
     std::unique_ptr<unsigned int []> indices = nullptr;
 
     QVector3D squarePos[NUM_SQUARE];

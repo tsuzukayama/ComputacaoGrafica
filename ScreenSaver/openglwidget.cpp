@@ -27,7 +27,8 @@ void OpenGLWidget::initializeGL()
         float x = cos(ang) * radius;
         float y = sin(ang) * radius;
         pos.setX(x);
-        pos.setY(y);
+        pos.setY(y);        
+        // pos.setZ(0);
         pos.setZ(((qrand() / (float)RAND_MAX) * 2.0f) - 1.0f);
         squarePos[i] = pos;
     }
@@ -42,7 +43,7 @@ void OpenGLWidget::resizeGL(int width , int height)
 {
     m_width = width;
     m_height = height;
-    glClearColor(0, 0, 0, 1);
+    glClearColor(1, 1, 1, 1);
 }
 
 void OpenGLWidget::paintGL()
@@ -181,7 +182,6 @@ void OpenGLWidget::createVBOs()
     destroyVBOs();
 
     vertices = std::make_unique<QVector4D []>(4);
-    colors = std::make_unique<float []>(4);
     indices = std::make_unique<unsigned int []>(2 * 3);
 
     // Four vertices to define a square
@@ -189,12 +189,6 @@ void OpenGLWidget::createVBOs()
     vertices[1] = QVector4D( 0.4, -0.5, 0, 1) * 0.1;
     vertices[2] = QVector4D( 0.4,  0.5, 0, 1) * 0.1;
     vertices[3] = QVector4D(-0.4,  0.5, 0, 1) * 0.1;
-
-    // Vertex colors
-    colors[0] = 0.5; // Red
-    colors[1] = 0.5; // Green
-    colors[2] = 0.5; // Blue
-    colors[3] = 0.5; // Yellow
 
     // Topology of the mesh ( two triangles that form a square )
     indices[0] = 0;
@@ -214,18 +208,11 @@ void OpenGLWidget::createVBOs()
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(0);
 
-    glGenBuffers(1, &vboColors);
-    glBindBuffer(GL_ARRAY_BUFFER, vboColors);
-    glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(float), colors.get(), GL_STATIC_DRAW);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
-    glEnableVertexAttribArray(1);
-
     glGenBuffers(1, &vboIndices);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIndices);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, 2 * 3 * sizeof(unsigned int), indices.get(), GL_STATIC_DRAW);
 
     vertices.reset();
-    colors.reset();
     indices.reset();
 }
 
@@ -234,13 +221,11 @@ void OpenGLWidget::destroyVBOs()
     makeCurrent();
 
     glDeleteBuffers(1, &vboVertices);
-    glDeleteBuffers(1, &vboColors);
     glDeleteBuffers(1, &vboIndices);
     glDeleteVertexArrays(1, &vao);
 
     vboVertices = 0;
     vboIndices = 0;
-    vboColors = 0;
     vao = 0;
 }
 
@@ -248,23 +233,24 @@ void OpenGLWidget::animate()
 {
 
     float elapsedTime = time.restart() / 1000.0f;
-    float speed = 0.5f;
+    float speed = 0.2f;
     float zspeed = 0.05f;
     float signal = 1;
     for(int s=0; s<NUM_SQUARE; ++s)
     {
-        QVector3D pos = squarePos[s];
-        if (pos.x() >= 0.7f) {
+        QVector3D pos = squarePos[s];        
+        float limit = 1 - pos.z();
+        if (pos.x() >= limit) {
             xAtEnd[s] = false;
         }
-        else if (pos.x() <= -0.7f) {
+        else if (pos.x() <= -limit) {
             xAtEnd[s] = true;
         }
 
-        if (pos.y() >= 0.7f) {
+        if (pos.y() >= limit) {
             yAtEnd[s] = false;
         }
-        else if (pos.y() <= -0.7f) {
+        else if (pos.y() <= -limit) {
             yAtEnd[s] = true;
         }
 
@@ -278,9 +264,8 @@ void OpenGLWidget::animate()
             pos.setY(pos.y() + speed * elapsedTime * signal);
         } else {
             pos.setY(pos.y() - speed * elapsedTime * signal);
-        }
-        pos.setZ(pos.z() + zspeed * elapsedTime * signal);
-
+        }        
+        pos.setZ(pos.z() + elapsedTime / 50);
         if (pos.z() >= 1.0f)
         {
             float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
@@ -289,7 +274,7 @@ void OpenGLWidget::animate()
             float y = sin(ang) * radius;
             pos.setX(x);
             pos.setY(y);
-            pos.setZ(-1.0f);
+            pos.setZ(-1);
 
         }
 

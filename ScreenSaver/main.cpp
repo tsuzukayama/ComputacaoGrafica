@@ -12,6 +12,7 @@ int main(int argc, char *argv[])
     format.setProfile(QSurfaceFormat::CoreProfile);
 
     QApplication a(argc, argv);
+
     MainWindow w;
     w.show();
 

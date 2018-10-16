@@ -1,4 +1,4 @@
-#version 400
+#version 410
 
 layout (location = 0) in vec4 vPosition;
 layout (location = 0) in vec4 vColors;
@@ -8,7 +8,7 @@ uniform vec4 translation;
 
 void main()
 {
-    float scaling = (translation.z - 1) / 8;
+    float scaling = (translation.z - 1);
     gl_Position = (vPosition + translation) * vec4(scaling, scaling, scaling, 1);
     // gl_Position = vPosition + translation;
 

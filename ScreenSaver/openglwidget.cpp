@@ -36,14 +36,14 @@ void OpenGLWidget::initializeGL()
     time.start();
     timer.start(0);
     connect(&timer, SIGNAL(timeout()), this, SLOT(animate()));
-    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);    
 }
 
 void OpenGLWidget::resizeGL(int width , int height)
 {
     m_width = width;
     m_height = height;
-    glClearColor(1, 1, 1, 1);
+    glClearColor(0, 0, 0, 1);
 }
 
 void OpenGLWidget::paintGL()
@@ -52,6 +52,8 @@ void OpenGLWidget::paintGL()
                0, m_width, m_height);
 
     GLuint locTranslation = glGetUniformLocation(shaderProgram, "translation");
+    GLuint locOuterRadius = glGetUniformLocation(shaderProgram, "outerRadius");
+    GLuint locViewDimensions = glGetUniformLocation(shaderProgram, "viewDimensions");
 
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -59,10 +61,15 @@ void OpenGLWidget::paintGL()
     glBindVertexArray(vao);
     for(int i=0; i<NUM_SQUARE; ++i)
     {
+        // render OpenGL here
+        // drawFilledCircle(squarePos[i].x(), squarePos[i].y(), 120);
         glUniform4f(locTranslation, squarePos[i].x(), squarePos[i].y(), squarePos[i].z(), 0);
+        glUniform1f(locOuterRadius, 0.1f);
+        glUniform2f(locViewDimensions, 0.1, 0.1);
         glDrawElements(GL_TRIANGLES, 2*3, GL_UNSIGNED_INT, nullptr);
     }
 }
+
 void OpenGLWidget::createShaders()
 {
     makeCurrent();
@@ -159,7 +166,7 @@ void OpenGLWidget::createShaders()
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
         return;
-    }
+    }    
 
     glDetachShader(shaderProgram, vertexShader);
     glDetachShader(shaderProgram, fragmentShader);
@@ -185,10 +192,10 @@ void OpenGLWidget::createVBOs()
     indices = std::make_unique<unsigned int []>(2 * 3);
 
     // Four vertices to define a square
-    vertices[0] = QVector4D(-0.4, -0.5, 0, 1) * 0.1;
-    vertices[1] = QVector4D( 0.4, -0.5, 0, 1) * 0.1;
-    vertices[2] = QVector4D( 0.4,  0.5, 0, 1) * 0.1;
-    vertices[3] = QVector4D(-0.4,  0.5, 0, 1) * 0.1;
+    vertices[0] = QVector4D(-0.4f * 0.1f, -0.5f * 0.1f, -1, 1);
+    vertices[1] = QVector4D( 0.4f * 0.1f, -0.5f * 0.1f, -1, 1);
+    vertices[2] = QVector4D( 0.4f * 0.1f,  0.5f * 0.1f, -1, 1);
+    vertices[3] = QVector4D(-0.4f * 0.1f,  0.5f * 0.1f, -1, 1);
 
     // Topology of the mesh ( two triangles that form a square )
     indices[0] = 0;
@@ -234,7 +241,7 @@ void OpenGLWidget::animate()
 
     float elapsedTime = time.restart() / 1000.0f;
     float speed = 0.2f;
-    float zspeed = 0.05f;
+    float zspeed = 2.8f;
     float signal = 1;
     for(int s=0; s<NUM_SQUARE; ++s)
     {
@@ -265,7 +272,7 @@ void OpenGLWidget::animate()
         } else {
             pos.setY(pos.y() - speed * elapsedTime * signal);
         }        
-        pos.setZ(pos.z() + elapsedTime / 50);
+        pos.setZ(pos.z() + zspeed * elapsedTime / 50);
         if (pos.z() >= 1.0f)
         {
             float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;

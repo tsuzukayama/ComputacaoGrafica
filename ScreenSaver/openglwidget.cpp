@@ -240,7 +240,7 @@ void OpenGLWidget::animate()
 {
 
     float elapsedTime = time.restart() / 1000.0f;
-    float speed = 0.2f;
+    float speed = 0.1f;
     float zspeed = 2.8f;
     float signal = 1;
     for(int s=0; s<NUM_SQUARE; ++s)

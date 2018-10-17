@@ -4,7 +4,7 @@
 #include <QtOpenGL>
 #include <memory>
 
-#define NUM_SQUARE 1000
+#define NUM_SQUARE 100
 
 class OpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
 {
@@ -36,7 +36,6 @@ public:
     void createShaders();
     void destroyVBOs();
     void destroyShaders();
-signals:
 
 public slots:
     void animate();

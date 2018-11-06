@@ -3,12 +3,15 @@
 
 #include "bullet.h"
 #include "player.h"
+#include "block.h"
 
 #include <QtOpenGL>
 #include <QOpenGLWidget>
 #include <QOpenGLExtraFunctions>
 
 #include <memory>
+
+#define NUM_BLOCKS 10
 
 class OpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
 {
@@ -26,6 +29,9 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
 
     std::shared_ptr<Player>player= nullptr;
     std::shared_ptr<Bullet>bullet= nullptr;
+    std::shared_ptr<Block>block= nullptr;
+
+    QVector3D obstaclesPos[NUM_BLOCKS];
 
     GLuint shaderProgram;
 
@@ -33,6 +39,10 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
     float playerPosY; // Current player Y position
 
     float playerPosXOffset; // Player displacement along Y axis
+
+    float playerPosXOffsetLeft;
+    float playerPosXOffsetRight;
+
     float playerPosX; // Current player Y position
 
     float targetPosYOffset; // Target displacement along Y axis
@@ -42,6 +52,7 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
     float projectilePosX; // Projectile X position
     float projectilePosY; // Projectile Y position
     int numHits; // Number of hits
+
 
     QTimer timer;
     QTime time;
@@ -55,7 +66,7 @@ protected:
     void paintGL();
 
     void keyPressEvent(QKeyEvent *event);
-    void keyReleaseEvent(QKeyEvent *event);
+    void keyReleaseEvent(QKeyEvent *event);    
 
 signals:
     void updateHitsLabel(QString);

@@ -3,11 +3,14 @@
 OpenGLWidget::OpenGLWidget(QWidget *parent)
     : QOpenGLWidget(parent)
 {
-    playerPosY = -0.9f;
+    playerPosY = -0.8f;
     playerPosYOffset = 0;
 
     playerPosX = 0;
     playerPosXOffset = 0;
+
+    playerPosXOffsetLeft = 0;
+    playerPosXOffsetRight = 0;
 
     targetPosYOffset = 2.0f;
     targetPosY = 0;
@@ -29,6 +32,21 @@ void OpenGLWidget::initializeGL()
 
     player = std::make_shared<Player>(this);
     bullet = std::make_shared<Bullet>(this);
+    block = std::make_shared<Block>(this);
+
+    for(int i=0; i<NUM_BLOCKS; ++i)
+    {
+        QVector3D pos = obstaclesPos[i];
+
+        float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
+        float radius = 1 + (qrand() / (float)RAND_MAX) * 2;
+        float x = cos(ang) * radius;
+        float y = sin(ang) * radius;
+        pos.setX(x);
+        pos.setY(y);
+        pos.setZ(0);
+        obstaclesPos[i] = pos;
+    }
 
     connect(&timer, SIGNAL(timeout()), this, SLOT(animate()));
     timer.start(0);
@@ -45,6 +63,10 @@ void OpenGLWidget::paintGL()
 {    
     player->drawModel(0.05, playerPosX, playerPosY);
 
+    for(int i = 0; i < NUM_BLOCKS; ++i) {
+        block->drawModel(obstaclesPos[i].x(), obstaclesPos[i].y());
+    }
+
     // Projectile
     if (shooting)
     {
@@ -59,7 +81,7 @@ void OpenGLWidget::animate()
     // Change player Y position
 
     playerPosY += playerPosYOffset * elapsedTime;
-    playerPosX += playerPosXOffset * elapsedTime;
+    playerPosX += (playerPosXOffsetLeft + playerPosXOffsetRight) * elapsedTime;
 
     if (playerPosX < -1) {
         playerPosX = -1;
@@ -81,14 +103,49 @@ void OpenGLWidget::animate()
         }
 
     }
+
+    // update obstacles
+    float speed = 1;
+    for(int i = 0; i < NUM_BLOCKS; ++i) {
+
+        // check colision with bullet
+        if ((projectilePosY > obstaclesPos[i].y() - 0.1f &&
+            projectilePosY < obstaclesPos[i].y() + 0.1f &&
+            projectilePosX > obstaclesPos[i].x() - 0.1f &&
+            projectilePosX < obstaclesPos[i].x() + 0.1f &&
+            projectilePosY <= 1.0f))
+        {
+            float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
+            float radius = 1 + (qrand() / (float)RAND_MAX) * 2;
+            float x = cos(ang) * radius;
+            float y = 5 + (sin(ang) * radius);
+            obstaclesPos[i].setX(x);
+            obstaclesPos[i].setY(y);
+            projectilePosY = -0.09f;
+            shooting = false;
+        }
+
+        // check if reached the end of screen
+        if(obstaclesPos[i].y() <= -1.0f){
+            float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
+            float radius = 1 + (qrand() / (float)RAND_MAX) * 2;
+            float x = cos(ang) * radius;
+            float y = 5 + (sin(ang) * radius);
+            obstaclesPos[i].setX(x);
+            obstaclesPos[i].setY(y);
+
+        }
+        else obstaclesPos[i].setY(obstaclesPos[i].y() - speed * elapsedTime);
+    }
+
     update();
 }
 
 // Strong focus is required
 void OpenGLWidget::keyPressEvent(QKeyEvent *event)
 {
-    if (event->key() == Qt::Key_Right) playerPosXOffset = 2.0f;
-    if (event->key() == Qt::Key_Left) playerPosXOffset = -2.0f;
+    if (event->key() == Qt::Key_Right) playerPosXOffsetRight = 1.0f;
+    if (event->key() == Qt::Key_Left) playerPosXOffsetLeft = -1.0f;
 
     if (event->key() == Qt::Key_Space)
     {
@@ -110,5 +167,9 @@ void OpenGLWidget::keyPressEvent(QKeyEvent *event)
 
 void OpenGLWidget::keyReleaseEvent(QKeyEvent *event)
 {
+    if (event->key() == Qt::Key_Right )
+        playerPosXOffsetRight = 0;
 
+    if (event->key() == Qt::Key_Left)
+        playerPosXOffsetLeft = 0;
 }

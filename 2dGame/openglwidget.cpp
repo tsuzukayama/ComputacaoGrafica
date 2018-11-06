@@ -17,7 +17,7 @@ OpenGLWidget::OpenGLWidget(QWidget *parent)
 
 
     projectilePosX = 0;
-    projectilePosY = -0.09f;
+    projectilePosY = -0.8f;
 
     numHits = 0;
 }
@@ -109,7 +109,8 @@ void OpenGLWidget::animate()
     for(int i = 0; i < NUM_BLOCKS; ++i) {
 
         // check colision with bullet
-        if ((projectilePosY > obstaclesPos[i].y() - 0.1f &&
+        if (shooting &&
+           (projectilePosY > obstaclesPos[i].y() - 0.1f &&
             projectilePosY < obstaclesPos[i].y() + 0.1f &&
             projectilePosX > obstaclesPos[i].x() - 0.1f &&
             projectilePosX < obstaclesPos[i].x() + 0.1f &&
@@ -121,7 +122,7 @@ void OpenGLWidget::animate()
             float y = 5 + (sin(ang) * radius);
             obstaclesPos[i].setX(x);
             obstaclesPos[i].setY(y);
-            projectilePosY = -0.09f;
+            projectilePosY = -0.8f;
             shooting = false;
         }
 

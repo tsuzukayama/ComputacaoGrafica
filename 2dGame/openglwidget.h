@@ -48,6 +48,8 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
     float speed; // game speed
     float numEnemies; // number of enemies
 
+    float maxScore;
+
     bool hasLoad;
 
 
@@ -65,8 +67,11 @@ protected:
     void keyPressEvent(QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);    
 
+    void resetGame();
+
 signals:
     void updateHitsLabel(QString);
+    void updateMaxScoreLabel(QString);
 
 public slots:
     void animate();

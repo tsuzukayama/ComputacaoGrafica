@@ -15,7 +15,6 @@ public:
     std::unique_ptr <QVector4D []> vertices = nullptr;
     std::unique_ptr<QVector4D[]> colors = nullptr;
     std::unique_ptr <unsigned int[]> indices = nullptr;
-    std::unique_ptr <QVector2D []> texCoords = nullptr;
 
     QOpenGLWidget * glWidget;
     unsigned int numVertices;
@@ -27,14 +26,11 @@ public:
     GLuint vboColors = 0;
     GLuint vboIndices = 0;
     GLuint shaderProgram = 0;
-    GLuint vboTexCoords = 0;
-    GLuint textureID = 0;
 
     void createVBOs();
     void createShaders();
     void destroyVBOs();
     void destroyShaders();
     void drawModel(float size, float x, float y);
-    void loadTexture();
 };
 #endif // MODEL_H

@@ -21,6 +21,8 @@ class Block:public QOpenGLExtraFunctions {
             unsigned int numFaces;
             int height;
 
+            QMatrix4x4 transformationMatrix;
+
             GLuint vao = 0;
             GLuint vboVertices = 0;
             GLuint vboColors = 0;

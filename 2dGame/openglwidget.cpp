@@ -66,8 +66,6 @@ void OpenGLWidget::paintGL()
 {    
     player->drawModel(0.05, playerPosX, playerPosY);
 
-    if(!hasLoad) player->loadTexture();
-
     for(int i = 0; i < floor(numEnemies); ++i) {
         block->drawModel(0.05, obstaclesPos[i].x(), obstaclesPos[i].y());
     }
@@ -122,9 +120,8 @@ void OpenGLWidget::animate()
             playerPosX > obstaclesPos[i].x() - 0.1f &&
             playerPosX < obstaclesPos[i].x() + 0.1f)
         {
-            score = 0;
-            speed = 1;
-            numEnemies = 10;
+
+            resetGame();
         }
         // check colision with bullet
         if (shooting &&
@@ -200,4 +197,29 @@ void OpenGLWidget::keyReleaseEvent(QKeyEvent *event)
 
     if (event->key() == Qt::Key_Left)
         playerPosXOffsetLeft = 0;
+}
+
+void OpenGLWidget::resetGame() {
+    // update max score
+    if(score > maxScore){
+        maxScore = score;
+        emit updateMaxScoreLabel(QString("Max score: %1").arg(floor(maxScore)));
+    }
+
+    score = 0;
+    speed = 1;
+    numEnemies = 10;
+
+    for(int i=0; i<NUM_MAX_ENEMIES; ++i)
+    {
+        QVector3D pos = obstaclesPos[i];
+
+        float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
+        float radius = 1 + (qrand() / (float)RAND_MAX) * 2;
+        float x = cos(ang) * radius;
+        float y = 10 + sin(ang) * radius;
+        pos.setX(x);
+        pos.setY(y);
+        obstaclesPos[i] = pos;
+    }
 }

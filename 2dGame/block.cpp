@@ -31,54 +31,54 @@ void Block::createVBOs() {
     glWidget -> makeCurrent();
     destroyVBOs();
 
-    vertices = std::make_unique<QVector4D[]>(4);
-    colors = std::make_unique<QVector4D[]>(4);
-    indices = std::make_unique<unsigned int[]>(2 * 3);
+    vertices = std::make_unique<QVector4D[]>(3);
+    colors = std::make_unique<QVector4D[]>(3);
+    indices = std::make_unique<unsigned int[]>(3);
 
     // create four vertices to define a square
-    vertices[0] = QVector4D(-1, -1, 0, 1);
-    vertices[1] = QVector4D(-1, 1, 0, 1);
-    vertices[2] = QVector4D(1, 1, 0, 1);
-    vertices[3] = QVector4D(1, -1, 0, 1);
+    vertices[0] = QVector4D(0, -1, 0, 1);
+    vertices[1] = QVector4D(1, 1, 0, 1);
+    vertices[2] = QVector4D(-1, 1, 0, 1);
+    //vertices[3] = QVector4D(1, -1, 0, 1);
     // create colors for the vertices
-    colors[0] = QVector4D (1, 1, 1, 1) ; // red
-    colors[1] = QVector4D (1, 1, 1, 1) ; // green
-    colors[2] = QVector4D (1, 1, 1, 1) ; // blue
-    colors[3] = QVector4D (1, 1, 1, 1) ; // yellow
+    colors[0] = QVector4D (1, 0, 0, 1) ; // red
+    colors[1] = QVector4D (1, 0, 0, 1) ; // green
+    colors[2] = QVector4D (1, 0, 0, 1) ; // blue
+    //colors[3] = QVector4D (1, 0, 0, 1) ; // yellow
     // topology of the mesh ( square )
     indices[0] = 0;
     indices[1] = 1;
     indices[2] = 2;
-    indices[3] = 2;
-    indices[4] = 3;
-    indices[5] = 0;
+//    indices[3] = 2;
+//    indices[4] = 3;
+//    indices[5] = 0;
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
     glGenBuffers(1, &vboVertices);
     glBindBuffer(GL_ARRAY_BUFFER, vboVertices);
-    glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(QVector4D), vertices.get(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(QVector4D), vertices.get(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(0);
 
     glGenBuffers(1, &vboColors);
     glBindBuffer(GL_ARRAY_BUFFER, vboColors);
-    glBufferData(GL_ARRAY_BUFFER, 4 * sizeof( QVector4D ), colors.get(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 3 * sizeof( QVector4D ), colors.get(), GL_STATIC_DRAW);
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(1);
 
     glGenBuffers(1, &vboIndices);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIndices);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 2 * 3 * sizeof(unsigned int), indices.get(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(unsigned int), indices.get(), GL_STATIC_DRAW);
 }
 
 void Block::createShaders() {
     // makeCurrent ();
     destroyShaders();
 
-    QFile vs(":/shaders/vshader1.glsl");
-    QFile fs(":/shaders/fshader1.glsl");
+    QFile vs(":/shaders/vshaderenemy.glsl");
+    QFile fs(":/shaders/fshaderenemy.glsl");
 
     vs.open(QFile::ReadOnly | QFile::Text);
     fs.open(QFile::ReadOnly | QFile::Text);
@@ -166,15 +166,16 @@ void Block::createShaders() {
 
 void Block::drawModel(float size, float x, float y) {
 
-    GLuint locScaling = glGetUniformLocation(shaderProgram, "scaling");
-    GLuint locTranslation = glGetUniformLocation(shaderProgram, "translation");
+    transformationMatrix.setToIdentity();
+    transformationMatrix.translate(x, y, 0);
+    transformationMatrix.scale(size, size, 0);
 
     glUseProgram(shaderProgram);
 
     glBindVertexArray(vao);
 
-    // Block
-    glUniform4f(locTranslation, x, y, 0, 0);
-    glUniform1f(locScaling, size);
-    glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, 0);
+    GLuint locTransform = glGetUniformLocation(shaderProgram, "transform");
+    // Player
+    glUniformMatrix4fv(locTransform, 1, GL_FALSE, transformationMatrix.data());
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 }

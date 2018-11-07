@@ -1,4 +1,4 @@
-#version 410
+#version 400
 
 // input variables processed in parallel
 layout (location = 0) in vec4 vPosition;

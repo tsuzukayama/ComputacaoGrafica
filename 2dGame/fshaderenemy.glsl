@@ -1,4 +1,4 @@
-#version 410
+#version 400
 
 in vec4 v2fcolor;
 

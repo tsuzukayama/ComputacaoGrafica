@@ -31,15 +31,17 @@ SOURCES += \
         mainwindow.cpp \
     openglwidget.cpp \
     player.cpp \
-    block.cpp \
-    bullet.cpp
+    bullet.cpp \
+    enemy.cpp \
+    star.cpp
 
 HEADERS += \
         mainwindow.h \
     openglwidget.h \
     player.h \
-    block.h \
-    bullet.h
+    bullet.h \
+    enemy.h \
+    star.h
 
 FORMS += \
         mainwindow.ui

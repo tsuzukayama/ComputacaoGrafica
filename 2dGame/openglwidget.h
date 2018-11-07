@@ -3,7 +3,8 @@
 
 #include "bullet.h"
 #include "player.h"
-#include "block.h"
+#include "enemy.h"
+#include "star.h"
 
 #include <QtOpenGL>
 #include <QOpenGLWidget>
@@ -12,6 +13,8 @@
 #include <memory>
 
 #define NUM_MAX_ENEMIES 1000
+
+#define NUM_STARS 100
 
 class OpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
 {
@@ -29,9 +32,11 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
 
     std::shared_ptr<Player>player= nullptr;
     std::shared_ptr<Bullet>bullet= nullptr;
-    std::shared_ptr<Block>block= nullptr;
+    std::shared_ptr<Enemy>enemy= nullptr;
+    std::shared_ptr<Star>star= nullptr;
 
     std::vector<QVector3D> obstaclesPos;
+    std::vector<QVector3D> starsPos;
 
     GLuint shaderProgram;
 

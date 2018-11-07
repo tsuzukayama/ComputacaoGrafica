@@ -1,16 +1,13 @@
-#ifndef MODEL_H
-#define MODEL_H
+#ifndef STARBG_H
+#define STARBG_H
 
-# include <QtOpenGL>
-# include <QOpenGLWidget>
-# include <QOpenGLExtraFunctions>
-# include <memory>
 
-class Player:public QOpenGLExtraFunctions {
+class StarBG
+{
 public:
 
-    Player(QOpenGLWidget * _glWidget);
-    ~Player();
+    StarBG(QOpenGLWidget * _glWidget);
+    ~StarBG();
 
     std::unique_ptr <QVector4D []> vertices = nullptr;
     std::unique_ptr<QVector4D[]> colors = nullptr;
@@ -20,14 +17,14 @@ public:
     unsigned int numVertices;
     unsigned int numFaces;
     int height;
-    bool isDead = false;
+
+    QMatrix4x4 transformationMatrix;
 
     GLuint vao = 0;
     GLuint vboVertices = 0;
     GLuint vboColors = 0;
     GLuint vboIndices = 0;
     GLuint shaderProgram = 0;
-
     void createVBOs();
     void createShaders();
     void destroyVBOs();

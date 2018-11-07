@@ -1,6 +1,6 @@
-#include "Block.h"
+#include "star.h"
 
-Block::Block(QOpenGLWidget * _glWidget) {
+Star::Star(QOpenGLWidget * _glWidget) {
     glWidget = _glWidget;
     glWidget -> makeCurrent();
     height = glWidget -> height();
@@ -9,12 +9,12 @@ Block::Block(QOpenGLWidget * _glWidget) {
     createVBOs();
 }
 
-Block::~Block() {
+Star::~Star() {
     destroyVBOs();
     destroyShaders();
 }
 
-void Block::destroyVBOs() {
+void Star::destroyVBOs() {
     glDeleteBuffers(1, &vboVertices);
     glDeleteBuffers(1, &vboIndices);
     glDeleteVertexArrays(1, &vao);
@@ -23,62 +23,66 @@ void Block::destroyVBOs() {
     vao = 0;
 }
 
-void Block::destroyShaders() {
+void Star::destroyShaders() {
     glDeleteProgram(shaderProgram);
 }
 
-void Block::createVBOs() {
+void Star::createVBOs() {
     glWidget -> makeCurrent();
     destroyVBOs();
 
-    vertices = std::make_unique<QVector4D[]>(3);
-    colors = std::make_unique<QVector4D[]>(3);
-    indices = std::make_unique<unsigned int[]>(3);
+    vertices = std::make_unique<QVector4D[]>(6);
+    colors = std::make_unique<QVector4D[]>(6);
+    indices = std::make_unique<unsigned int[]>(2 * 3);
 
     // create four vertices to define a square
-    vertices[0] = QVector4D(0, -1, 0, 1);
-    vertices[1] = QVector4D(1, 1, 0, 1);
-    vertices[2] = QVector4D(-1, 1, 0, 1);
-    //vertices[3] = QVector4D(1, -1, 0, 1);
+    vertices[0] = QVector4D(0, sqrt(3)/3, 0, 1);
+    vertices[1] = QVector4D(0.5, -sqrt(3)/6, 0, 1);
+    vertices[2] = QVector4D(-0.5, -sqrt(3)/6, 0, 1);
+    vertices[3] = QVector4D(0, -sqrt(3)/3, 0, 1);
+    vertices[4] = QVector4D(0.5, sqrt(3)/6, 0, 1);
+    vertices[5] = QVector4D(-0.5, sqrt(3)/6, 0, 1);
     // create colors for the vertices
-    colors[0] = QVector4D (1, 0, 0, 1) ; // red
-    colors[1] = QVector4D (1, 0, 0, 1) ; // green
-    colors[2] = QVector4D (1, 0, 0, 1) ; // blue
-    //colors[3] = QVector4D (1, 0, 0, 1) ; // yellow
+    colors[0] = QVector4D (1, 0.2, 0.2, 1); // red
+    colors[1] = QVector4D (1, 0.2, 0.2, 1); // green
+    colors[2] = QVector4D (1, 0.2, 0.2, 1); // blue
+    colors[3] = QVector4D (1, 0.2, 0.2, 1); // yellow
+    colors[4] = QVector4D (1, 0.2, 0.2, 1); // blue
+    colors[5] = QVector4D (1, 0.2, 0.2, 1); // yellow
     // topology of the mesh ( square )
     indices[0] = 0;
     indices[1] = 1;
     indices[2] = 2;
-//    indices[3] = 2;
-//    indices[4] = 3;
-//    indices[5] = 0;
+    indices[3] = 3;
+    indices[4] = 4;
+    indices[5] = 5;
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
     glGenBuffers(1, &vboVertices);
     glBindBuffer(GL_ARRAY_BUFFER, vboVertices);
-    glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(QVector4D), vertices.get(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(QVector4D), vertices.get(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(0);
 
     glGenBuffers(1, &vboColors);
     glBindBuffer(GL_ARRAY_BUFFER, vboColors);
-    glBufferData(GL_ARRAY_BUFFER, 3 * sizeof( QVector4D ), colors.get(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof( QVector4D ), colors.get(), GL_STATIC_DRAW);
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(1);
 
     glGenBuffers(1, &vboIndices);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIndices);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(unsigned int), indices.get(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 2 * 3 * sizeof(unsigned int), indices.get(), GL_STATIC_DRAW);
 }
 
-void Block::createShaders() {
+void Star::createShaders() {
     // makeCurrent ();
     destroyShaders();
 
-    QFile vs(":/shaders/vshaderenemy.glsl");
-    QFile fs(":/shaders/fshaderenemy.glsl");
+    QFile vs(":/shaders/vshaderstar.glsl");
+    QFile fs(":/shaders/fshaderstar.glsl");
 
     vs.open(QFile::ReadOnly | QFile::Text);
     fs.open(QFile::ReadOnly | QFile::Text);
@@ -164,7 +168,7 @@ void Block::createShaders() {
     fs.close();
 }
 
-void Block::drawModel(float size, float x, float y) {
+void Star::drawModel(float size, float x, float y) {
 
     transformationMatrix.setToIdentity();
     transformationMatrix.translate(x, y, 0);
@@ -177,5 +181,5 @@ void Block::drawModel(float size, float x, float y) {
     GLuint locTransform = glGetUniformLocation(shaderProgram, "transform");
     // Player
     glUniformMatrix4fv(locTransform, 1, GL_FALSE, transformationMatrix.data());
-    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, 0);
 }

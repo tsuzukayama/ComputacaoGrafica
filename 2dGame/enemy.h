@@ -6,11 +6,11 @@
 # include <QOpenGLExtraFunctions>
 # include <memory>
 
-class Block:public QOpenGLExtraFunctions {
+class Enemy:public QOpenGLExtraFunctions {
         public:
 
-            Block(QOpenGLWidget * _glWidget);
-            ~Block();
+            Enemy(QOpenGLWidget * _glWidget);
+            ~Enemy();
 
             std::unique_ptr <QVector4D []> vertices = nullptr;
             std::unique_ptr<QVector4D[]> colors = nullptr;

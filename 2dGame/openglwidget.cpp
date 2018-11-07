@@ -24,6 +24,12 @@ OpenGLWidget::OpenGLWidget(QWidget *parent)
 
         obstaclesPos.insert(obstaclesPos.begin() + i, pos);
     }
+
+    for(int i = 0; i < NUM_STARS; ++i) {
+        QVector3D pos;
+
+        starsPos.insert(starsPos.begin() + i, pos);
+    }
 }
 
 void OpenGLWidget::initializeGL()
@@ -36,8 +42,10 @@ void OpenGLWidget::initializeGL()
 
     player = std::make_shared<Player>(this);
     bullet = std::make_shared<Bullet>(this);
-    block = std::make_shared<Block>(this);
+    enemy = std::make_shared<Enemy>(this);
+    star = std::make_shared<Star>(this);
 
+    // set obstacles
     for(int i=0; i<NUM_MAX_ENEMIES; ++i)
     {
         QVector3D pos = obstaclesPos[i];
@@ -49,6 +57,20 @@ void OpenGLWidget::initializeGL()
         pos.setX(x);
         pos.setY(y);
         obstaclesPos[i] = pos;
+    }
+
+    // set stars
+    for(int i=0; i<NUM_STARS; ++i)
+    {
+        QVector3D pos = starsPos[i];
+
+        float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
+        float radius = 1 + (qrand() / (float)RAND_MAX) * 2;
+        float x = cos(ang) * radius;
+        float y = sin(ang) * radius;
+        pos.setX(x);
+        pos.setY(y);
+        starsPos[i] = pos;
     }
 
     connect(&timer, SIGNAL(timeout()), this, SLOT(animate()));
@@ -63,11 +85,15 @@ void OpenGLWidget::resizeGL(int width, int height)
 }
 
 void OpenGLWidget::paintGL()
-{    
+{        
     player->drawModel(0.05, playerPosX, playerPosY);
 
     for(int i = 0; i < floor(numEnemies); ++i) {
-        block->drawModel(0.05, obstaclesPos[i].x(), obstaclesPos[i].y());
+        enemy->drawModel(0.05, obstaclesPos[i].x(), obstaclesPos[i].y());
+    }
+
+    for(int i = 0; i < NUM_STARS; ++i) {
+        star->drawModel(0.005, starsPos[i].x(), starsPos[i].y());
     }
 
     // Projectile
@@ -81,89 +107,104 @@ void OpenGLWidget::paintGL()
 
 void OpenGLWidget::animate()
 {
-    float elapsedTime = time.restart() / 1000.0f;
+    if (!player->isDead) {
+        float elapsedTime = time.restart() / 1000.0f;
 
-    score += elapsedTime;
-    emit updateHitsLabel(QString("Score: %1").arg(floor(score)));
+        score += elapsedTime;
+        emit updateHitsLabel(QString("Score: %1").arg(floor(score)));
 
-    // Change player Y position
+        // Change player Y position
 
-    playerPosX += (playerPosXOffsetLeft + playerPosXOffsetRight) * elapsedTime;
+        playerPosX += (playerPosXOffsetLeft + playerPosXOffsetRight) * elapsedTime;
 
-    if (playerPosX < -1) {
-        playerPosX = -1;
-    } else if (playerPosX > 1){
-        playerPosX = 1;
-    }
+        if (playerPosX < -1) {
+            playerPosX = -1;
+        } else if (playerPosX > 1){
+            playerPosX = 1;
+        }
 
-    // Update projectile
-    if (shooting)
-    {
-        // Move projectile
-        projectilePosY += 3.0f * elapsedTime;
-
-        // Check whether the projectile missed the target
-        if (projectilePosY > 1.0f)
+        // Update projectile
+        if (shooting)
         {
-            qDebug("Missed");
-            shooting = false;
+            // Move projectile
+            projectilePosY += 3.0f * elapsedTime;
+
+            // Check whether the projectile missed the target
+            if (projectilePosY > 1.0f)
+            {
+                qDebug("Missed");
+                shooting = false;
+            }
+
         }
 
+        // update obstacles
+        for(int i = 0; i < floor(numEnemies); ++i) {
+
+            // check colision with player
+            if (playerPosY > obstaclesPos[i].y() - 0.1f &&
+                playerPosY < obstaclesPos[i].y() + 0.1f &&
+                playerPosX > obstaclesPos[i].x() - 0.1f &&
+                playerPosX < obstaclesPos[i].x() + 0.1f)
+            {
+                player->isDead = true;
+            }
+            // check colision with bullet
+            if (shooting &&
+               (projectilePosY > obstaclesPos[i].y() - 0.1f &&
+                projectilePosY < obstaclesPos[i].y() + 0.1f &&
+                projectilePosX > obstaclesPos[i].x() - 0.1f &&
+                projectilePosX < obstaclesPos[i].x() + 0.1f &&
+                projectilePosY <= 1.0f))
+            {
+                float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
+                float radius = 1 + (qrand() / (float)RAND_MAX) * 2;
+                float x = cos(ang) * radius;
+                float y = 5 + (sin(ang) * radius);
+                obstaclesPos[i].setX(x);
+                obstaclesPos[i].setY(y);
+
+                projectilePosY = -0.8f;
+
+                shooting = false;
+
+                score += 10;
+            }
+
+            // check if reached the end of screen
+            if(obstaclesPos[i].y() <= -1.0f){
+                float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
+                float radius = 1 + (qrand() / (float)RAND_MAX) * 2;
+                float x = cos(ang) * radius;
+                float y = 5 + (sin(ang) * radius);
+                obstaclesPos[i].setX(x);
+                obstaclesPos[i].setY(y);
+
+            }
+            else obstaclesPos[i].setY(obstaclesPos[i].y() - speed * elapsedTime);
+
+        }
+
+        // update stars
+        for(int i = 0; i < NUM_STARS; ++i) {
+            if(starsPos[i].y() <= -1.0f){
+                float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
+                float radius = 1 + (qrand() / (float)RAND_MAX) * 2;
+                float x = cos(ang) * radius;
+                float y = 5 + (sin(ang) * radius);
+                starsPos[i].setX(x);
+                starsPos[i].setY(y);
+
+            }
+            else starsPos[i].setY(starsPos[i].y() - elapsedTime);
+        }
+
+        speed += 0.0001;
+        if (numEnemies < NUM_MAX_ENEMIES)
+            numEnemies += 0.01;
+
+        update();
     }
-
-    // update obstacles
-    for(int i = 0; i < floor(numEnemies); ++i) {
-
-        // check colision with player
-        if (playerPosY > obstaclesPos[i].y() - 0.1f &&
-            playerPosY < obstaclesPos[i].y() + 0.1f &&
-            playerPosX > obstaclesPos[i].x() - 0.1f &&
-            playerPosX < obstaclesPos[i].x() + 0.1f)
-        {
-
-            resetGame();
-        }
-        // check colision with bullet
-        if (shooting &&
-           (projectilePosY > obstaclesPos[i].y() - 0.1f &&
-            projectilePosY < obstaclesPos[i].y() + 0.1f &&
-            projectilePosX > obstaclesPos[i].x() - 0.1f &&
-            projectilePosX < obstaclesPos[i].x() + 0.1f &&
-            projectilePosY <= 1.0f))
-        {
-            float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
-            float radius = 1 + (qrand() / (float)RAND_MAX) * 2;
-            float x = cos(ang) * radius;
-            float y = 5 + (sin(ang) * radius);
-            obstaclesPos[i].setX(x);
-            obstaclesPos[i].setY(y);
-
-            projectilePosY = -0.8f;
-
-            shooting = false;
-
-            score += 10;
-        }
-
-        // check if reached the end of screen
-        if(obstaclesPos[i].y() <= -1.0f){
-            float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
-            float radius = 1 + (qrand() / (float)RAND_MAX) * 2;
-            float x = cos(ang) * radius;
-            float y = 5 + (sin(ang) * radius);
-            obstaclesPos[i].setX(x);
-            obstaclesPos[i].setY(y);
-
-        }
-        else obstaclesPos[i].setY(obstaclesPos[i].y() - speed * elapsedTime);
-
-    }
-
-    speed += 0.0001;
-    if (numEnemies < NUM_MAX_ENEMIES)
-        numEnemies += 0.01;
-
-    update();
 }
 
 // Strong focus is required
@@ -188,6 +229,8 @@ void OpenGLWidget::keyPressEvent(QKeyEvent *event)
     {
         QApplication::quit();
     }
+
+    if (event->key() == Qt::Key_Return) this->resetGame();
 }
 
 void OpenGLWidget::keyReleaseEvent(QKeyEvent *event)

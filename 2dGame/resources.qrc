@@ -2,10 +2,10 @@
     <qresource prefix="/shaders">
         <file>fshader1.glsl</file>
         <file>vshader1.glsl</file>
-        <file>vshaderplayer.glsl</file>
-        <file>fshaderplayer.glsl</file>
         <file>fshaderenemy.glsl</file>
         <file>vshaderenemy.glsl</file>
+        <file>vshaderstar.glsl</file>
+        <file>fshaderstar.glsl</file>
     </qresource>
     <qresource prefix="/textures">
         <file>player.png</file>

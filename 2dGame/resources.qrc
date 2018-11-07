@@ -2,5 +2,11 @@
     <qresource prefix="/shaders">
         <file>fshader1.glsl</file>
         <file>vshader1.glsl</file>
+        <file>vshaderplayer.glsl</file>
+        <file>fshaderplayer.glsl</file>
+    </qresource>
+    <qresource prefix="/textures">
+        <file>player.png</file>
+        <file>lena.jpg</file>
     </qresource>
 </RCC>

@@ -3,23 +3,19 @@
 OpenGLWidget::OpenGLWidget(QWidget *parent)
     : QOpenGLWidget(parent)
 {
-    playerPosY = -0.8f;
-    playerPosYOffset = 0;
-
+    // player position
     playerPosX = 0;
-    playerPosXOffset = 0;
+    playerPosY = -0.8f;
 
     playerPosXOffsetLeft = 0;
     playerPosXOffsetRight = 0;
 
-    targetPosYOffset = 2.0f;
-    targetPosY = 0;
-
-
     projectilePosX = 0;
     projectilePosY = -0.8f;
 
-    numHits = 0;
+    score = 0;
+
+    hasLoad = false;
 }
 
 void OpenGLWidget::initializeGL()
@@ -44,7 +40,6 @@ void OpenGLWidget::initializeGL()
         float y = sin(ang) * radius;
         pos.setX(x);
         pos.setY(y);
-        pos.setZ(0);
         obstaclesPos[i] = pos;
     }
 
@@ -63,8 +58,10 @@ void OpenGLWidget::paintGL()
 {    
     player->drawModel(0.05, playerPosX, playerPosY);
 
+    if(!hasLoad) player->loadTexture();
+
     for(int i = 0; i < NUM_BLOCKS; ++i) {
-        block->drawModel(obstaclesPos[i].x(), obstaclesPos[i].y());
+        block->drawModel(0.05, obstaclesPos[i].x(), obstaclesPos[i].y());
     }
 
     // Projectile
@@ -72,15 +69,19 @@ void OpenGLWidget::paintGL()
     {
         bullet->drawModel(projectilePosX, projectilePosY);
     }
+
+    hasLoad = true;
 }
 
 void OpenGLWidget::animate()
 {
     float elapsedTime = time.restart() / 1000.0f;
 
+    score += elapsedTime;
+    emit updateHitsLabel(QString("Score: %1").arg(floor(score)));
+
     // Change player Y position
 
-    playerPosY += playerPosYOffset * elapsedTime;
     playerPosX += (playerPosXOffsetLeft + playerPosXOffsetRight) * elapsedTime;
 
     if (playerPosX < -1) {
@@ -108,12 +109,20 @@ void OpenGLWidget::animate()
     float speed = 1;
     for(int i = 0; i < NUM_BLOCKS; ++i) {
 
+        // check colision with player
+        if (playerPosY > obstaclesPos[i].y() - 0.1f &&
+            playerPosY < obstaclesPos[i].y() + 0.1f &&
+            playerPosX > obstaclesPos[i].x() - 0.05f &&
+            playerPosX < obstaclesPos[i].x() + 0.05f)
+        {
+            score = 0;
+        }
         // check colision with bullet
         if (shooting &&
-           (projectilePosY > obstaclesPos[i].y() - 0.1f &&
-            projectilePosY < obstaclesPos[i].y() + 0.1f &&
-            projectilePosX > obstaclesPos[i].x() - 0.1f &&
-            projectilePosX < obstaclesPos[i].x() + 0.1f &&
+           (projectilePosY > obstaclesPos[i].y() - 0.05f &&
+            projectilePosY < obstaclesPos[i].y() + 0.05f &&
+            projectilePosX > obstaclesPos[i].x() - 0.05f &&
+            projectilePosX < obstaclesPos[i].x() + 0.05f &&
             projectilePosY <= 1.0f))
         {
             float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
@@ -122,8 +131,12 @@ void OpenGLWidget::animate()
             float y = 5 + (sin(ang) * radius);
             obstaclesPos[i].setX(x);
             obstaclesPos[i].setY(y);
+
             projectilePosY = -0.8f;
+
             shooting = false;
+
+            score += 10;
         }
 
         // check if reached the end of screen

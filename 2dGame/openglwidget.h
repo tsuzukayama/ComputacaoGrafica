@@ -35,23 +35,18 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
 
     GLuint shaderProgram;
 
-    float playerPosYOffset; // Player displacement along Y axis
+    float playerPosX; // Current player X position
     float playerPosY; // Current player Y position
 
-    float playerPosXOffset; // Player displacement along Y axis
-
-    float playerPosXOffsetLeft;
-    float playerPosXOffsetRight;
-
-    float playerPosX; // Current player Y position
-
-    float targetPosYOffset; // Target displacement along Y axis
-    float targetPosY; // Current target Y position
+    float playerPosXOffsetLeft; // offset Left for player
+    float playerPosXOffsetRight; // offset Right for player
 
     bool shooting; // Whether the projectile is being animated
     float projectilePosX; // Projectile X position
     float projectilePosY; // Projectile Y position
-    int numHits; // Number of hits
+    float score; // Number of hits
+
+    bool hasLoad;
 
 
     QTimer timer;

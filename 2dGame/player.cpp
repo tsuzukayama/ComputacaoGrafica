@@ -17,9 +17,13 @@ Player::~Player() {
 void Player::destroyVBOs() {
     glDeleteBuffers(1, &vboVertices);
     glDeleteBuffers(1, &vboIndices);
+    glDeleteBuffers(1, &vboTexCoords);
     glDeleteVertexArrays(1, &vao);
+
     vboVertices = 0;
     vboIndices = 0;
+    vboTexCoords = 0;
+
     vao = 0;
 }
 
@@ -34,12 +38,13 @@ void Player::createVBOs() {
     vertices = std::make_unique<QVector4D[]>(4);
     colors = std::make_unique<QVector4D[]>(4);
     indices = std::make_unique<unsigned int[]>(2 * 3);
+    texCoords = std::make_unique<QVector2D []>(4);
 
     // create four vertices to define a square
-    vertices[0] = QVector4D(-0.5, -2, 0, 1);
-    vertices[1] = QVector4D(-0.5, 2, 0, 1);
-    vertices[2] = QVector4D(0.5, 2, 0, 1);
-    vertices[3] = QVector4D(0.5, -2, 0, 1);
+    vertices[0] = QVector4D(-0.5, -0.5, 0, 1);
+    vertices[1] = QVector4D(-0.5, 0.5, 0, 1);
+    vertices[2] = QVector4D(0.5, 0.5, 0, 1);
+    vertices[3] = QVector4D(0.5, -0.5, 0, 1);
     // create colors for the vertices
     colors[0] = QVector4D (1, 1, 1, 1) ; // red
     colors[1] = QVector4D (1, 1, 1, 1) ; // green
@@ -52,6 +57,11 @@ void Player::createVBOs() {
     indices[3] = 2;
     indices[4] = 3;
     indices[5] = 0;
+
+    texCoords [3] = QVector2D(0, 0);
+    texCoords [2] = QVector2D(1, 0);
+    texCoords [1] = QVector2D(1, 1);
+    texCoords [0] = QVector2D(0, 1);
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -71,6 +81,13 @@ void Player::createVBOs() {
     glGenBuffers(1, &vboIndices);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIndices);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, 2 * 3 * sizeof(unsigned int), indices.get(), GL_STATIC_DRAW);
+
+    glGenBuffers(1, &vboTexCoords);
+    glBindBuffer(GL_ARRAY_BUFFER, vboTexCoords);
+    glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(QVector2D),
+    texCoords.get(), GL_STATIC_DRAW);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glEnableVertexAttribArray(2);
 }
 
 void Player::createShaders() {
@@ -166,6 +183,8 @@ void Player::createShaders() {
 
 void Player::drawModel(float size, float x, float y) {
 
+    glClear(GL_COLOR_BUFFER_BIT);
+
     GLuint locScaling = glGetUniformLocation(shaderProgram, "scaling");
     GLuint locTranslation = glGetUniformLocation(shaderProgram, "translation");
 
@@ -174,7 +193,41 @@ void Player::drawModel(float size, float x, float y) {
     glBindVertexArray(vao);
 
     // Player
+    GLuint locColorTexture = 0;
+    locColorTexture = glGetUniformLocation (shaderProgram, "colorTexture");
+    glUniform1i(locColorTexture, 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
     glUniform4f(locTranslation, x, y, 0, 0);
     glUniform1f(locScaling, size);
     glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, 0);
+}
+
+void Player::loadTexture()
+{
+    glWidget->makeCurrent();
+
+    QImage image;
+    image.load(":/textures/lena.jpg");
+    image = image.convertToFormat(QImage::Format_RGBA8888);
+
+    qDebug() <<QString::number(image.width());
+
+    if (textureID)
+        glDeleteTextures(1, &textureID);
+
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width(),
+        image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.bits());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+        GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+        GL_LINEAR_MIPMAP_LINEAR);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    glWidget->update();
 }

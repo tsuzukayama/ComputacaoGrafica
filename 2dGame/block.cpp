@@ -164,7 +164,7 @@ void Block::createShaders() {
     fs.close();
 }
 
-void Block::drawModel(float x, float y) {
+void Block::drawModel(float size, float x, float y) {
 
     GLuint locScaling = glGetUniformLocation(shaderProgram, "scaling");
     GLuint locTranslation = glGetUniformLocation(shaderProgram, "translation");
@@ -175,6 +175,6 @@ void Block::drawModel(float x, float y) {
 
     // Block
     glUniform4f(locTranslation, x, y, 0, 0);
-    glUniform1f(locScaling, 0.01);
+    glUniform1f(locScaling, size);
     glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, 0);
 }

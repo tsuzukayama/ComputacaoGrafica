@@ -30,6 +30,6 @@ class Block:public QOpenGLExtraFunctions {
             void createShaders();
             void destroyVBOs();
             void destroyShaders();
-            void drawModel(float x, float y);
+            void drawModel(float size, float x, float y);
         };
         #endif // MODEL_H

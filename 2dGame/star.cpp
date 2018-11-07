@@ -171,7 +171,7 @@ void Star::createShaders() {
 void Star::drawModel(float size, float x, float y) {
 
     transformationMatrix.setToIdentity();
-    transformationMatrix.translate(x, y, 0);
+    transformationMatrix.translate(x, y, -1);
     transformationMatrix.scale(size, size, 0);
 
     glUseProgram(shaderProgram);

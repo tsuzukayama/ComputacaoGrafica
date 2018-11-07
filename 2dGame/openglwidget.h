@@ -75,8 +75,6 @@ protected:
     void resetGame();
 
 signals:
-    void updateHitsLabel(QString);
-    void updateMaxScoreLabel(QString);
 
 public slots:
     void animate();

@@ -40,24 +40,11 @@ void OpenGLWidget::initializeGL()
     qDebug("OpenGL version: %s", glGetString(GL_VERSION));
     qDebug("GLSL %s", glGetString(GL_SHADING_LANGUAGE_VERSION));    
 
+    star = std::make_shared<Star>(this);
     player = std::make_shared<Player>(this);
     bullet = std::make_shared<Bullet>(this);
     enemy = std::make_shared<Enemy>(this);
-    star = std::make_shared<Star>(this);
 
-    // set obstacles
-    for(int i=0; i<NUM_MAX_ENEMIES; ++i)
-    {
-        QVector3D pos = obstaclesPos[i];
-
-        float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
-        float radius = 1 + (qrand() / (float)RAND_MAX) * 2;
-        float x = cos(ang) * radius;
-        float y = 10 + sin(ang) * radius;
-        pos.setX(x);
-        pos.setY(y);
-        obstaclesPos[i] = pos;
-    }
 
     // set stars
     for(int i=0; i<NUM_STARS; ++i)
@@ -73,6 +60,22 @@ void OpenGLWidget::initializeGL()
         starsPos[i] = pos;
     }
 
+    // set obstacles
+    for(int i=0; i<NUM_MAX_ENEMIES; ++i)
+    {
+        QVector3D pos = obstaclesPos[i];
+
+        float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
+        float radius = 1 + (qrand() / (float)RAND_MAX) * 2;
+        float x = cos(ang) * radius;
+        float y = 10 + sin(ang) * radius;
+        pos.setX(x);
+        pos.setY(y);
+        obstaclesPos[i] = pos;
+    }
+
+
+
     connect(&timer, SIGNAL(timeout()), this, SLOT(animate()));
     timer.start(0);
 
@@ -86,15 +89,19 @@ void OpenGLWidget::resizeGL(int width, int height)
 
 void OpenGLWidget::paintGL()
 {        
+    QPainter painter(this);
+
+    for(int i = 0; i < NUM_STARS; ++i) {
+        star->drawModel(0.009, starsPos[i].x(), starsPos[i].y());
+    }
+
     player->drawModel(0.05, playerPosX, playerPosY);
 
     for(int i = 0; i < floor(numEnemies); ++i) {
         enemy->drawModel(0.05, obstaclesPos[i].x(), obstaclesPos[i].y());
     }
 
-    for(int i = 0; i < NUM_STARS; ++i) {
-        star->drawModel(0.005, starsPos[i].x(), starsPos[i].y());
-    }
+
 
     // Projectile
     if (shooting)
@@ -102,7 +109,25 @@ void OpenGLWidget::paintGL()
         bullet->drawModel(0.009, projectilePosX, projectilePosY);
     }
 
-    hasLoad = true;
+    glBindVertexArray(0);
+    glUseProgram(0);
+
+    painter.setPen(Qt::white);
+    painter.setFont(QFont("Arial", 12));
+    painter.drawText(rect(), Qt::AlignRight,
+                     QString("%1").arg(QString::number(
+                        static_cast<int>(std::floor(score)))));
+
+    painter.drawText(rect(), Qt::AlignLeft,
+                     QString("Max score: %1").arg(QString::number(
+                        static_cast<int>(std::floor(maxScore)))));
+
+    if (player->isDead) {
+        painter.setPen(Qt::yellow);
+        painter.setFont(QFont("Arial", 36));
+        painter.drawText(rect(), Qt::AlignCenter, "Perdeu. Pressione Enter");
+    }
+
 }
 
 void OpenGLWidget::animate()
@@ -111,7 +136,6 @@ void OpenGLWidget::animate()
         float elapsedTime = time.restart() / 1000.0f;
 
         score += elapsedTime;
-        emit updateHitsLabel(QString("Score: %1").arg(floor(score)));
 
         // Change player Y position
 
@@ -151,10 +175,10 @@ void OpenGLWidget::animate()
             }
             // check colision with bullet
             if (shooting &&
-               (projectilePosY > obstaclesPos[i].y() - 0.1f &&
-                projectilePosY < obstaclesPos[i].y() + 0.1f &&
-                projectilePosX > obstaclesPos[i].x() - 0.1f &&
-                projectilePosX < obstaclesPos[i].x() + 0.1f &&
+               (projectilePosY > obstaclesPos[i].y() - 0.05f &&
+                projectilePosY < obstaclesPos[i].y() + 0.05f &&
+                projectilePosX > obstaclesPos[i].x() - 0.05f &&
+                projectilePosX < obstaclesPos[i].x() + 0.05f &&
                 projectilePosY <= 1.0f))
             {
                 float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
@@ -196,7 +220,7 @@ void OpenGLWidget::animate()
                 starsPos[i].setY(y);
 
             }
-            else starsPos[i].setY(starsPos[i].y() - elapsedTime);
+            else starsPos[i].setY(starsPos[i].y() - speed * elapsedTime/5);
         }
 
         speed += 0.0001;
@@ -246,12 +270,12 @@ void OpenGLWidget::resetGame() {
     // update max score
     if(score > maxScore){
         maxScore = score;
-        emit updateMaxScoreLabel(QString("Max score: %1").arg(floor(maxScore)));
     }
 
     score = 0;
     speed = 1;
     numEnemies = 10;
+    player->isDead = false;
 
     for(int i=0; i<NUM_MAX_ENEMIES; ++i)
     {

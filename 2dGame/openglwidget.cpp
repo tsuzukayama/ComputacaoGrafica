@@ -14,8 +14,16 @@ OpenGLWidget::OpenGLWidget(QWidget *parent)
     projectilePosY = -0.8f;
 
     score = 0;
+    speed = 1;
+    numEnemies = 10;
 
     hasLoad = false;
+
+    for(int i = 0; i < NUM_MAX_ENEMIES; ++i) {
+        QVector3D pos;
+
+        obstaclesPos.insert(obstaclesPos.begin() + i, pos);
+    }
 }
 
 void OpenGLWidget::initializeGL()
@@ -30,14 +38,14 @@ void OpenGLWidget::initializeGL()
     bullet = std::make_shared<Bullet>(this);
     block = std::make_shared<Block>(this);
 
-    for(int i=0; i<NUM_BLOCKS; ++i)
+    for(int i=0; i<NUM_MAX_ENEMIES; ++i)
     {
         QVector3D pos = obstaclesPos[i];
 
         float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
         float radius = 1 + (qrand() / (float)RAND_MAX) * 2;
         float x = cos(ang) * radius;
-        float y = sin(ang) * radius;
+        float y = 10 + sin(ang) * radius;
         pos.setX(x);
         pos.setY(y);
         obstaclesPos[i] = pos;
@@ -60,14 +68,14 @@ void OpenGLWidget::paintGL()
 
     if(!hasLoad) player->loadTexture();
 
-    for(int i = 0; i < NUM_BLOCKS; ++i) {
+    for(int i = 0; i < floor(numEnemies); ++i) {
         block->drawModel(0.05, obstaclesPos[i].x(), obstaclesPos[i].y());
     }
 
     // Projectile
     if (shooting)
     {
-        bullet->drawModel(projectilePosX, projectilePosY);
+        bullet->drawModel(0.01, projectilePosX, projectilePosY);
     }
 
     hasLoad = true;
@@ -106,23 +114,24 @@ void OpenGLWidget::animate()
     }
 
     // update obstacles
-    float speed = 1;
-    for(int i = 0; i < NUM_BLOCKS; ++i) {
+    for(int i = 0; i < floor(numEnemies); ++i) {
 
         // check colision with player
         if (playerPosY > obstaclesPos[i].y() - 0.1f &&
             playerPosY < obstaclesPos[i].y() + 0.1f &&
-            playerPosX > obstaclesPos[i].x() - 0.05f &&
-            playerPosX < obstaclesPos[i].x() + 0.05f)
+            playerPosX > obstaclesPos[i].x() - 0.1f &&
+            playerPosX < obstaclesPos[i].x() + 0.1f)
         {
             score = 0;
+            speed = 1;
+            numEnemies = 10;
         }
         // check colision with bullet
         if (shooting &&
-           (projectilePosY > obstaclesPos[i].y() - 0.05f &&
-            projectilePosY < obstaclesPos[i].y() + 0.05f &&
-            projectilePosX > obstaclesPos[i].x() - 0.05f &&
-            projectilePosX < obstaclesPos[i].x() + 0.05f &&
+           (projectilePosY > obstaclesPos[i].y() - 0.1f &&
+            projectilePosY < obstaclesPos[i].y() + 0.1f &&
+            projectilePosX > obstaclesPos[i].x() - 0.1f &&
+            projectilePosX < obstaclesPos[i].x() + 0.1f &&
             projectilePosY <= 1.0f))
         {
             float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
@@ -150,7 +159,12 @@ void OpenGLWidget::animate()
 
         }
         else obstaclesPos[i].setY(obstaclesPos[i].y() - speed * elapsedTime);
+
     }
+
+    speed += 0.0001;
+    if (numEnemies < NUM_MAX_ENEMIES)
+        numEnemies += 0.01;
 
     update();
 }

@@ -30,6 +30,6 @@ class Bullet:public QOpenGLExtraFunctions {
             void createShaders();
             void destroyVBOs();
             void destroyShaders();
-            void drawModel(float x, float y);
+            void drawModel(float scale, float x, float y);
         };
         #endif // MODEL_H

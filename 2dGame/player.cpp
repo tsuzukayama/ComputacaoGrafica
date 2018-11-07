@@ -41,10 +41,10 @@ void Player::createVBOs() {
     texCoords = std::make_unique<QVector2D []>(4);
 
     // create four vertices to define a square
-    vertices[0] = QVector4D(-0.5, -0.5, 0, 1);
-    vertices[1] = QVector4D(-0.5, 0.5, 0, 1);
-    vertices[2] = QVector4D(0.5, 0.5, 0, 1);
-    vertices[3] = QVector4D(0.5, -0.5, 0, 1);
+    vertices[0] = QVector4D(-1, -1, 0, 1);
+    vertices[1] = QVector4D(-1, 1, 0, 1);
+    vertices[2] = QVector4D(1, 1, 0, 1);
+    vertices[3] = QVector4D(1, -1, 0, 1);
     // create colors for the vertices
     colors[0] = QVector4D (1, 1, 1, 1) ; // red
     colors[1] = QVector4D (1, 1, 1, 1) ; // green

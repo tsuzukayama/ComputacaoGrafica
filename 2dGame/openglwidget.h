@@ -11,7 +11,7 @@
 
 #include <memory>
 
-#define NUM_BLOCKS 10
+#define NUM_MAX_ENEMIES 1000
 
 class OpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
 {
@@ -31,7 +31,7 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
     std::shared_ptr<Bullet>bullet= nullptr;
     std::shared_ptr<Block>block= nullptr;
 
-    QVector3D obstaclesPos[NUM_BLOCKS];
+    std::vector<QVector3D> obstaclesPos;
 
     GLuint shaderProgram;
 
@@ -45,6 +45,8 @@ class OpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
     float projectilePosX; // Projectile X position
     float projectilePosY; // Projectile Y position
     float score; // Number of hits
+    float speed; // game speed
+    float numEnemies; // number of enemies
 
     bool hasLoad;
 

@@ -36,10 +36,10 @@ void Bullet::createVBOs() {
     indices = std::make_unique<unsigned int[]>(2 * 3);
 
     // create four vertices to define a square
-    vertices[0] = QVector4D(-4, -0.5, 0, 1);
-    vertices[1] = QVector4D(-4, 0.5, 0, 1);
-    vertices[2] = QVector4D(4, 0.5, 0, 1);
-    vertices[3] = QVector4D(4, -0.5, 0, 1);
+    vertices[0] = QVector4D(-1, -1, 0, 1);
+    vertices[1] = QVector4D(-1, 1, 0, 1);
+    vertices[2] = QVector4D(1, 1, 0, 1);
+    vertices[3] = QVector4D(1, -1, 0, 1);
     // create colors for the vertices
     colors[0] = QVector4D (1, 1, 1, 1) ; // red
     colors[1] = QVector4D (1, 1, 1, 1) ; // green
@@ -164,7 +164,7 @@ void Bullet::createShaders() {
     fs.close();
 }
 
-void Bullet::drawModel(float x, float y) {
+void Bullet::drawModel(float scale, float x, float y) {
 
     GLuint locScaling = glGetUniformLocation(shaderProgram, "scaling");
     GLuint locTranslation = glGetUniformLocation(shaderProgram, "translation");
@@ -175,6 +175,6 @@ void Bullet::drawModel(float x, float y) {
 
     // Bullet
     glUniform4f(locTranslation, x, y, 0, 0);
-    glUniform1f(locScaling, 0.01);
+    glUniform1f(locScaling, scale);
     glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, 0);
 }

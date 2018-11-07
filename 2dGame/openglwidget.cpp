@@ -125,7 +125,7 @@ void OpenGLWidget::paintGL()
     if (player->isDead) {
         painter.setPen(Qt::yellow);
         painter.setFont(QFont("Arial", 36));
-        painter.drawText(rect(), Qt::AlignCenter, "Perdeu. Pressione Enter");
+        painter.drawText(rect(), Qt::AlignCenter, "Enter to restart");
     }
 
 }

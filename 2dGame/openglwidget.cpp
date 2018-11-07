@@ -73,7 +73,7 @@ void OpenGLWidget::paintGL()
     // Projectile
     if (shooting)
     {
-        bullet->drawModel(0.01, projectilePosX, projectilePosY);
+        bullet->drawModel(0.009, projectilePosX, projectilePosY);
     }
 
     hasLoad = true;

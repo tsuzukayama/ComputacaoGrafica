@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/shaders">
+        <file>vshader.glsl</file>
+        <file>fshader.glsl</file>
+    </qresource>
+    <qresource prefix="/models">
+        <file>cube.off</file>
+        <file>tet3dcc2.off</file>
+        <file>teapot.off</file>
+        <file>bunny.off</file>
+        <file>m1119.off</file>
+    </qresource>
+</RCC>

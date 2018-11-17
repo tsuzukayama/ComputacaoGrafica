@@ -1,438 +1,200 @@
-#include <QFile>
-#include <QTextStream>
-#include <fstream>
-#include <limits>
-#include <iostream>
-
 #include "openglwidget.h"
 
-OpenGLWidget::OpenGLWidget(QWidget *parent) : QOpenGLWidget(parent)
+OpenGLWidget::OpenGLWidget(QWidget * parent) : QOpenGLWidget(parent)
 {
+}
+
+void OpenGLWidget::changeShader(int shaderIndex)
+{
+    if (!model)
+        return;
+
+    model->shaderIndex = shaderIndex;
+    update();
+}
+
+void OpenGLWidget::wheelEvent(QWheelEvent *event)
+{
+   if(!model)
+       return;
+
+   model->zoom += 0.001 * event->delta();
 }
 
 void OpenGLWidget::initializeGL()
 {
     initializeOpenGLFunctions();
-    glClearColor(0.0f, 0.0, 0.0f, 1);
 
     qDebug("OpenGL version: %s", glGetString(GL_VERSION));
     qDebug("GLSL %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-    readOFFFile(":/models/m1119.off");
-    normalizeModel();
-    createNormals();
-    createShaders();
-    createVBOs();
-
-
-
-    float x = 0;
-    float y = 0;
-    float z = -0.5f;
-    singleStarPos = QVector3D(x,y,z).normalized();
-
-
-    time1.start();
-    time2.start();
-    timer.start(0);
-    connect(&timer, SIGNAL(timeout()), this, SLOT(animate()));
-
     glEnable(GL_DEPTH_TEST);
-}
 
-void OpenGLWidget::resizeGL(int width, int height)
-{
-    glViewport(0, 0, width, height);
-    float aspectRatio = (float)width / (float)height;
-
-    mProjection.setToIdentity();
-    mProjection.perspective(20.0f, aspectRatio, 0.1f, 100.0f);
+    connect(&timer, SIGNAL(timeout()), this, SLOT(animate()));
+    timer.start(0);
 }
 
 void OpenGLWidget::paintGL()
 {
+    glViewport(0, 0, width(), height());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    GLint locProjectionMatrix = glGetUniformLocation(shaderProgram, "mProjection");
-    GLint locModelViewMatrix = glGetUniformLocation(shaderProgram, "mModelView");
-    GLint locNormalMatrix = glGetUniformLocation(shaderProgram, "mNormal");
-    GLint locShininess = glGetUniformLocation(shaderProgram, "shininess");
-    GLint locAmbient = glGetUniformLocation(shaderProgram, "Ia");
-    GLint locDiffuse = glGetUniformLocation(shaderProgram, "Id");
-    GLint locSpecular = glGetUniformLocation(shaderProgram, "Is");
-    GLint locLightPos = glGetUniformLocation(shaderProgram, "lightPos");
-
-    glBindVertexArray(vao);
-    glUseProgram(shaderProgram);
-
-    fpsCounter++;
-
-    if(time1.elapsed() > 1000)
-    {
-        double fps = fpsCounter * 1000.0 / time1.elapsed();
-        QString str;
-        str.sprintf("FPS: %.2f", fps);
-        emit setLabelText(str);
-        fpsCounter = 0;
-        time1.restart();
-    }
-
-    QMatrix4x4 mView;
-    mView.setToIdentity();
-    mView.lookAt(QVector3D(0.0f, 0.0f, 0.0f),
-                 QVector3D(0.0f, 0.0f, -1.0f),
-                 QVector3D(0.0f, 1.0f, 0.0f));
-
-    float shininess = 128.0f;
-    QVector3D ambient = QVector3D(0.0f, 0.0f, 0.2f) * QVector3D(1.0f, 1.0f, 1.0f);
-    QVector3D diffuse = QVector3D(1.0f, 1.0f, 0.7f) * QVector3D(0.9f, 0.8f, 0.8f);
-    QVector3D specular = QVector3D(0.0f, 0.0f, 0.0f) * QVector3D(1.0f, 1.0f, 1.0f);
-    QVector3D lightPos = QVector3D(0.0f, 0.0f, 0.0f);
-
-    glUniform3fv(locAmbient, 1, &(ambient[0]));
-    glUniform3fv(locDiffuse, 1, &(diffuse[0]));
-    glUniform3fv(locSpecular, 1, &(specular[0]));
-    glUniform1f(locShininess, shininess);
-    glUniform3fv(locLightPos, 1, &(lightPos[0]));
-
-
-    QMatrix4x4 mModel;
-    mModel.translate(singleStarPos);
-
-    QMatrix4x4 mModelView;
-    mModel.scale(0.2f);
-    mModel.rotate(angle, singleStarRot);
-    mModelView = mView * mModel;
-
-    glUniformMatrix4fv(locProjectionMatrix, 1, GL_FALSE, mProjection.data());
-    glUniformMatrix4fv(locModelViewMatrix, 1, GL_FALSE, mModelView.data());
-    glUniformMatrix3fv(locNormalMatrix, 1, GL_FALSE, mModelView.normalMatrix().data());
-
-    glDrawElements(GL_TRIANGLES, numFaces*3, GL_UNSIGNED_INT, nullptr);
-
-}
-
-void OpenGLWidget::readOFFFile(const QString &fileName)
-{
-    QFile file(fileName);
-    file.open(QFile::ReadOnly | QFile::Text);
-
-    QTextStream stream(&file);
-
-    QString line;
-    stream >> line;
-    stream >> numVertices >> numFaces >> line;
-
-    if (numVertices == 0)
+    if (!model)
         return;
 
-    vertices = std::make_unique<QVector4D []>(numVertices);
-    indices = std::make_unique<unsigned int[]>(numFaces * 3);
+    GLuint shaderProgramID = model->shaderProgram[model->shaderIndex];
 
-    float minLim = std::numeric_limits<float>::lowest();
-    float maxLim = std::numeric_limits<float>::max();
-    QVector4D max(minLim, minLim, minLim, 1.0);
-    QVector4D min(maxLim, maxLim, maxLim, 1.0);
+    QVector4D ambientProduct = light.ambient * model->material.ambient;
+    QVector4D diffuseProduct = light.diffuse * model->material.diffuse;
+    QVector4D specularProduct = light.specular * model->material.specular;
 
-    // Read the list of vertices
-    for (unsigned int i = 0; i < numVertices; ++i)
-    {
-        float x, y, z;
-        stream >> x >> y >> z;
-        vertices[i] = QVector4D(x, y, z, 1.0);
+    GLint locProjection = glGetUniformLocation(shaderProgramID, "projection");
+    GLint locView = glGetUniformLocation(shaderProgramID, "view");
+    GLint locLightPosition = glGetUniformLocation(shaderProgramID, "lightPosition");
+    GLint locAmbientProduct = glGetUniformLocation(shaderProgramID, "ambientProduct");
+    GLint locDiffuseProduct = glGetUniformLocation(shaderProgramID, "diffuseProduct");
+    GLint locSpecularProduct = glGetUniformLocation(shaderProgramID, "specularProduct");
+    GLint locShininess = glGetUniformLocation(shaderProgramID, "shininess");
 
-        // Also keep the min and max XYZ coordinates
-        max.setX(std::max(max.x(), x));
-        max.setY(std::max(max.y(), y));
-        max.setZ(std::max(max.z(), z));
-        min.setX(std::min(min.x(), x));
-        min.setY(std::min(min.y(), y));
-        min.setZ(std::min(min.z(), z));
-    }
+    glUseProgram(shaderProgramID);
 
-    // Computes the centroid of the model
-    QVector3D midPoint = QVector3D((min + max) * 0.5);
+    glUniformMatrix4fv(locProjection, 1, GL_FALSE, camera.projectionMatrix.data());
+    glUniformMatrix4fv(locView, 1, GL_FALSE, camera.viewMatrix.data());
+    glUniform4fv(locLightPosition, 1, &(light.position[0]));
+    glUniform4fv(locAmbientProduct, 1, &(ambientProduct[0]));
+    glUniform4fv(locDiffuseProduct, 1, &(diffuseProduct[0]));
+    glUniform4fv(locSpecularProduct, 1, &(specularProduct[0]));
+    glUniform1f(locShininess, model->material.shininess);
 
-    // Computes a scaling factor (sx, sy, sz) to normalize
-    // the size of the model
-    float invDiag = std::sqrt(3.0) / (max - min).length();
-
-    // Center and normalize the model
-    for (unsigned int i = 0; i < numVertices; ++i)
-    {
-        QVector4D v = vertices[i];
-        v = (v - midPoint) * invDiag;
-        v.setW(1);
-        vertices[i] = v;
-    }
-
-    // Read the indices
-    for (unsigned int i = 0; i < numFaces; ++i)
-    {
-        unsigned int a, b, c;
-        stream >> line >> a >> b >> c;
-        indices[i * 3 + 0] = a;
-        indices[i * 3 + 1] = b;
-        indices[i * 3 + 2] = c;
-    }
-
-    createNormals();
-    createShaders();
-    createVBOs();
-
-    file.close();
+    model->drawModel();
 }
 
-void OpenGLWidget::animate()
-{   
-    float elapsedTime = time1.restart() / 5000.0f;
-    singleStarPos.setX(singleStarPos.x() + (playerPosXOffsetLeft + playerPosXOffsetRight) * elapsedTime);
-    singleStarPos.setY(singleStarPos.y() + (playerPosYOffsetUp + playerPosYOffsetDown) * elapsedTime);
+void OpenGLWidget::resizeGL(int width, int height)
+{
+    camera.resizeViewport(width, height);
+
+    if (model)
+        model->trackBall.resizeViewport(width, height);
+
     update();
 }
 
-void OpenGLWidget::normalizeModel()
+void OpenGLWidget::showFileOpenDialog()
 {
-    // Compute minimum and maximum values
-    float fmax = std::numeric_limits<float>::max();
-    float minx = fmax, miny = fmax, minz = fmax;
-    float maxx = -fmax, maxy = -fmax, maxz = -fmax;
-    for(unsigned int i=0; i<numVertices; ++i)
+    QByteArray fileFormat = "off";
+    QString fileName = QFileDialog::getOpenFileName(this,
+        "Open File", QDir::homePath(),
+        QString("\%1 Files (*.\%2)").arg(QString(fileFormat.toUpper())).arg(QString(fileFormat)), nullptr
+#ifdef Q_OS_LINUX
+        , QFileDialog::DontUseNativeDialog
+#endif
+    );
+    int shaderIndex = 0;
+    if (!fileName.isEmpty())
     {
-        if(vertices[i].x() < minx) minx = vertices[i].x();
-        if(vertices[i].y() < miny) miny = vertices[i].y();
-        if(vertices[i].z() < minz) minz = vertices[i].z();
+        if (model)
+            shaderIndex = model->shaderIndex;
 
-        if(vertices[i].x() > maxx) maxx = vertices[i].x();
-        if(vertices[i].y() > maxy) maxy = vertices[i].y();
-        if(vertices[i].z() > maxz) maxz = vertices[i].z();
+        model = std::make_shared<Model>(this);
+        model->shaderIndex = shaderIndex;
+        model->readOFFFile(fileName);
+
+        model->trackBall.resizeViewport(width(), height());
+
+        emit statusBarMessage(QString("Vertices: \%1, Faces: \%2").arg(model->numVertices).arg(model->numFaces));
+        emit enableComboShaders(true);
     }
-
-    float w = maxx-minx;
-    float h = maxy-miny;
-    float d = maxz-minz;
-    float maxSize = qMax(w, qMax(h, d));
-
-    // Translate minimum coordinate point to origin
-    for(unsigned int i=0; i<numVertices; ++i)
-    {
-        vertices[i].setX(vertices[i].x()-minx);
-        vertices[i].setY(vertices[i].y()-miny);
-        vertices[i].setZ(vertices[i].z()-minz);
-    }
-
-    // Normalize each side
-    for(unsigned int i=0; i<numVertices; ++i)
-    {
-        vertices[i].setX(vertices[i].x()/maxSize);
-        vertices[i].setY(vertices[i].y()/maxSize);
-        vertices[i].setZ(vertices[i].z()/maxSize);
-    }
-
-    // Center around origin
-    for(unsigned int i=0; i<numVertices; ++i)
-    {
-        vertices[i].setX(vertices[i].x()-(w/maxSize / 2.0f));
-        vertices[i].setY(vertices[i].y()-(h/maxSize / 2.0f));
-        vertices[i].setZ(vertices[i].z()-(d/maxSize / 2.0f));
-    }
+    update();
 }
 
-void OpenGLWidget::createShaders()
+void OpenGLWidget::animate()
 {
-    destroyShaders();
+    update();
+}
 
-    QFile vs(":/shaders/vshader.glsl");
-    QFile fs(":/shaders/fshader.glsl");
-
-    vs.open(QFile::ReadOnly | QFile::Text);
-    fs.open(QFile::ReadOnly | QFile::Text);
-
-    QTextStream streamVs(&vs), streamFs(&fs);
-
-    QString qtStringVs = streamVs.readAll();
-    QString qtStringFs = streamFs.readAll();
-
-    std::string stdStringVs = qtStringVs.toStdString();
-    std::string stdStringFs = qtStringFs.toStdString();
-    GLuint vertexShader = 0;
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-
-    // Send the vertex shader source code to GL
-    const GLchar *source = stdStringVs.c_str();
-
-    glShaderSource(vertexShader, 1, &source, nullptr);
-
-    // Compile the vertex shader
-    glCompileShader(vertexShader);
-
-    GLint isCompiled = 0;
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &isCompiled);
-    if (isCompiled == GL_FALSE)
-    {
-        GLint maxLength = 0;
-        glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
-        // The maxLength includes the NULL character
-        std::vector<GLchar> infoLog(maxLength);
-        glGetShaderInfoLog(vertexShader, maxLength, &maxLength, &infoLog[0]);
-        qDebug("%s", &infoLog[0]);
-
-        glDeleteShader(vertexShader);
+void OpenGLWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    if (!model)
         return;
-    }
-    GLuint fragmentShader = 0;
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 
-    // Send the fragment shader source code to GL
-    source = stdStringFs.c_str();
-    glShaderSource(fragmentShader, 1, &source, nullptr);
+    model->trackBall.mouseMove(event->localPos());
+}
 
-    // Compile the fragment shader
-    glCompileShader(fragmentShader);
-
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &isCompiled);
-    if (isCompiled == GL_FALSE)
-    {
-        GLint maxLength = 0;
-        glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &maxLength);
-
-        std::vector<GLchar> infoLog(maxLength);
-        glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, &infoLog[0]);
-        qDebug("%s", &infoLog[0]);
-
-        glDeleteShader(fragmentShader);
-        glDeleteShader(vertexShader);
+void OpenGLWidget::mousePressEvent(QMouseEvent *event)
+{
+    if (!model)
         return;
-    }
 
-    shaderProgram = glCreateProgram();
+    if (event->button() & Qt::LeftButton)
+        model->trackBall.mousePress(event->localPos());
+}
 
-    // Attach our shaders to our program
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-
-    // Link our program
-    glLinkProgram(shaderProgram);
-
-    // Note the different functions here: glGetProgram* instead of glGetShader*.
-    GLint isLinked = 0;
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, (int *)&isLinked);
-    if (isLinked == GL_FALSE)
-    {
-        GLint maxLength = 0;
-        glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &maxLength);
-
-        // The maxLength includes the NULL character
-        std::vector<GLchar> infoLog(maxLength);
-        glGetProgramInfoLog(shaderProgram, maxLength, &maxLength, &infoLog[0]);
-        qDebug("%s", &infoLog[0]);
-
-        glDeleteProgram(shaderProgram);
-        glDeleteShader(vertexShader);
-        glDeleteShader(fragmentShader);
+void OpenGLWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+    if (!model)
         return;
-    }
-    glDetachShader(shaderProgram, vertexShader);
-    glDetachShader(shaderProgram, fragmentShader);
 
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    vs.close();
-    fs.close();
+    if (event->button() & Qt::LeftButton)
+        model->trackBall.mouseRelease(event->localPos());
 }
 
-void OpenGLWidget::destroyShaders()
+void OpenGLWidget::loadTexture()
 {
-    makeCurrent();
-    glDeleteProgram(shaderProgram);
-}
-
-void OpenGLWidget::createVBOs()
-{
-    makeCurrent();
-    destroyVBOs();
-
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    glGenBuffers(1, &vboVertices);
-    glBindBuffer(GL_ARRAY_BUFFER, vboVertices);
-    glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(QVector4D),
-                 vertices.get(), GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
-    glEnableVertexAttribArray(0);
-
-    glGenBuffers(1, &vboNormals);
-    glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
-    glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(QVector3D),
-                 normals.get(), GL_STATIC_DRAW);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-    glEnableVertexAttribArray(1);
-
-    glGenBuffers(1, &vboIndices);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIndices);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, numFaces * 3 * sizeof(unsigned int),
-                 indices.get(), GL_STATIC_DRAW);
-}
-
-void OpenGLWidget::destroyVBOs()
-{
-    glDeleteBuffers(1, &vboVertices);
-    glDeleteBuffers(1, &vboIndices);
-    glDeleteBuffers(1, &vboNormals);
-
-    glDeleteVertexArrays(1, &vao);
-
-    vboVertices = 0;
-    vboIndices = 0;
-    vboNormals = 0;
-    vao = 0;
-}
-
-void OpenGLWidget::createNormals()
-{
-    normals = std::make_unique<QVector3D[]>(numVertices);
-
-    for (unsigned int i = 0; i < numFaces; ++i)
+    QString fileName = QFileDialog::getOpenFileName(this,
+        QString("Open Image File"), "",
+        QString("JPEG (*.jpg *.jpeg);;PNG (*.png)"), nullptr
+#ifdef Q_OS_LINUX
+        , QFileDialog::DontUseNativeDialog
+#endif
+                                                   );
+    if (!fileName.isEmpty() && model)
     {
-        QVector3D a = QVector3D(vertices[indices[i * 3 + 0]]);
-        QVector3D b = QVector3D(vertices[indices[i * 3 + 1]]);
-        QVector3D c = QVector3D(vertices[indices[i * 3 + 2]]);
-        QVector3D faceNormal = QVector3D::crossProduct((b - a), (c - b));
+        QImage image;
+        image.load(fileName);
+        image = image.convertToFormat(QImage::Format_RGBA8888);
 
-        // Accumulates face normals on the vertices
-        normals[indices[i * 3 + 0]] += faceNormal;
-        normals[indices[i * 3 + 1]] += faceNormal;
-        normals[indices[i * 3 + 2]] += faceNormal;
+        model->loadTexture(image);
     }
-
-    for (unsigned int i = 0; i < numVertices; ++i)
-    {
-        normals[i].normalize();
-    }
+    update();
 }
+
+void OpenGLWidget::loadTextureLayer()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+        QString("Open Image File"), "",
+        QString("JPEG (*.jpg *.jpeg);;PNG (*.png)"), nullptr
+#ifdef Q_OS_LINUX
+        , QFileDialog::DontUseNativeDialog
+#endif
+                                                    );
+    if (!fileName.isEmpty() && model)
+    {
+        QImage image;
+        image.load(fileName);
+        image = image.convertToFormat(QImage::Format_RGBA8888);
+
+        model->loadTextureLayer(image);
+    }
+    update();
+}
+
+// Strong focus is required
 void OpenGLWidget::keyPressEvent(QKeyEvent *event)
 {
-    if (event->key() == Qt::Key_Right) playerPosXOffsetRight = 1.0f;
-    if (event->key() == Qt::Key_Left) playerPosXOffsetLeft = -1.0f;
-
-    if (event->key() == Qt::Key_Up) playerPosYOffsetDown = 1.0f;
-    if (event->key() == Qt::Key_Down) playerPosYOffsetUp = -1.0f;
+    if (event->key() == Qt::Key_Escape)
+    {
+        QApplication::quit();
+    }
 }
 
-void OpenGLWidget::keyReleaseEvent(QKeyEvent *event)
+void OpenGLWidget::toggleBackgroundColor(bool changeBColor)
 {
-    if (event->key() == Qt::Key_Right )
-        playerPosXOffsetRight = 0;
+    makeCurrent();
 
-    if (event->key() == Qt::Key_Left)
-        playerPosXOffsetLeft = 0;
+    if (changeBColor)
+         glClearColor(0, 0, 0, 1);
+    else
+         glClearColor(1, 1, 1, 1);
 
-    if (event->key() == Qt::Key_Up)
-        playerPosYOffsetDown = 0;
-
-    if (event->key() == Qt::Key_Down)
-        playerPosYOffsetUp = 0;
+    update();
 }
-

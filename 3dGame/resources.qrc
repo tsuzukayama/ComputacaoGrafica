@@ -1,13 +1,32 @@
 <RCC>
-    <qresource prefix="/shaders">
-        <file>vshader.glsl</file>
-        <file>fshader.glsl</file>
+    <qresource prefix="/textures">
+        <file>cube/negx.jpg</file>
+        <file>cube/negy.jpg</file>
+        <file>cube/negz.jpg</file>
+        <file>cube/posx.jpg</file>
+        <file>cube/posy.jpg</file>
+        <file>cube/posz.jpg</file>
     </qresource>
-    <qresource prefix="/models">
-        <file>cube.off</file>
-        <file>tet3dcc2.off</file>
-        <file>teapot.off</file>
-        <file>bunny.off</file>
-        <file>m1119.off</file>
+    <qresource prefix="/shaders">
+        <file>shaders/fcubemap.glsl</file>
+        <file>shaders/fflat.glsl</file>
+        <file>shaders/fgouraud.glsl</file>
+        <file>shaders/fnormal.glsl</file>
+        <file>shaders/fnormalmap.glsl</file>
+        <file>shaders/fphong.glsl</file>
+        <file>shaders/fshader1.glsl</file>
+        <file>shaders/ftex2.glsl</file>
+        <file>shaders/ftexture.glsl</file>
+        <file>shaders/vcubemap.glsl</file>
+        <file>shaders/vflat.glsl</file>
+        <file>shaders/vgouraud.glsl</file>
+        <file>shaders/vnormal.glsl</file>
+        <file>shaders/vnormalmap.glsl</file>
+        <file>shaders/vphong.glsl</file>
+        <file>shaders/vshader1.glsl</file>
+        <file>shaders/vtex2.glsl</file>
+        <file>shaders/vtexture.glsl</file>
+        <file>shaders/ftoon.glsl</file>
+        <file>shaders/vtoon.glsl</file>
     </qresource>
 </RCC>

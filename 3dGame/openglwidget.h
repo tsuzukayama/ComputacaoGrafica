@@ -1,75 +1,52 @@
 #ifndef OPENGLWIDGET_H
 #define OPENGLWIDGET_H
 
-#include <QtOpenGL>
+#include <QWidget>
+#include <QOpenGLWidget>
 #include <QOpenGLExtraFunctions>
 
-#include <memory>
 
-#define NUM_STARS 1
+#include "light.h"
+#include "model.h"
+#include "camera.h"
 
-class OpenGLWidget : public QOpenGLWidget, public QOpenGLExtraFunctions
+class OpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
 {
     Q_OBJECT
 
 public:
-    explicit OpenGLWidget(QWidget *parent = nullptr);
+    OpenGLWidget(QWidget *parent = nullptr);
 
-    void createVBOs();
-    void createShaders();
+    void mouseMoveEvent(QMouseEvent *event);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
+    void keyPressEvent(QKeyEvent *event);
+    void wheelEvent(QWheelEvent *event);
 
-    void destroyVBOs();
-    void destroyShaders();
+    QTimer timer;
 
-    void readOFFFile(const QString &fileName);
-    void normalizeModel();
-    void createNormals();
+signals:
+    void statusBarMessage(QString);
+    void enableComboShaders(bool);
+
+public slots:
+    void showFileOpenDialog();
+    void loadTexture();
+    void loadTextureLayer();
+    void changeShader(int);
+    void animate();
+    void toggleBackgroundColor(bool);
 
 protected:
     void initializeGL();
     void resizeGL(int width, int height);
-    void paintGL();    
+    void paintGL();
 
-private:
-    GLuint vboVertices = 0;
-    GLuint vboNormals = 0;
-    GLuint vboIndices = 0;
+    std::shared_ptr<Model> model;
+    Light light;
+    Camera camera;
 
-    GLuint vao = 0;
-    GLuint shaderProgram;
-
-    unsigned int numVertices = 0, numFaces = 0;
-    std::unique_ptr<QVector4D []> vertices = nullptr;
-    std::unique_ptr<QVector3D []> normals = nullptr;
-    std::unique_ptr<unsigned int[]> indices = nullptr;
-
-    QMatrix4x4 mProjection;
-
-    QVector3D starPos[NUM_STARS], starRot[NUM_STARS];
-
-    QVector3D singleStarPos, singleStarRot;
-
-    QTimer timer;
-    QTime time1, time2;
-
-    double fpsCounter = 0;
-    float angle = 0;
-
-    float playerPosXOffsetLeft = 0; // offset Left for player
-    float playerPosXOffsetRight = 0; // offset Right for player
-
-    float playerPosYOffsetUp = 0; // offset Left for player
-    float playerPosYOffsetDown = 0; // offset Right for player
-
-signals:
-    void setLabelText(QString);
-
-public slots:
-    void animate();
-
-protected:
-    void keyPressEvent(QKeyEvent *event);
-    void keyReleaseEvent(QKeyEvent *event);
+    void updateScene(int);
 };
 
 #endif // OPENGLWIDGET_H

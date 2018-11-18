@@ -7,9 +7,7 @@ Model::Model(QOpenGLWidget *_glWidget)
 
     initializeOpenGLFunctions();
 
-    loadCubeMapTexture();
-
-    shaderIndex = 0;
+    shaderIndex = 3;
     numShaders = 0;
 }
 
@@ -84,171 +82,127 @@ void Model::createVBOs()
 
 void Model::destroyShaders ()
 {
-    for (GLuint shaderProgramID : shaderProgram)
-    {
-        glDeleteProgram(shaderProgramID);
-    }
-    shaderProgram.clear();
+    glDeleteProgram(shaderProgram);
 }
 
-void Model::createShaders ()
+void Model::createShaders()
 {
-    numShaders = 10;
-
-    QString vertexShaderFile[]  = {":/shaders/shaders/vshader1.glsl",
-                                   ":/shaders/shaders/vflat.glsl",
-                                   ":/shaders/shaders/vgouraud.glsl",
-                                   ":/shaders/shaders/vphong.glsl",
-                                   ":/shaders/shaders/vtoon.glsl",
-                                   ":/shaders/shaders/vnormal.glsl",
-                                   ":/shaders/shaders/vtexture.glsl",
-                                   ":/shaders/shaders/vtex2.glsl",
-                                   ":/shaders/shaders/vnormalmap.glsl",
-                                   ":/shaders/shaders/vcubemap.glsl"};
-
-    QString fragmentShaderFile[] = {":/shaders/shaders/fshader1.glsl",
-                                    ":/shaders/shaders/fflat.glsl",
-                                    ":/shaders/shaders/fgouraud.glsl",
-                                    ":/shaders/shaders/fphong.glsl",
-                                    ":/shaders/shaders/ftoon.glsl",
-                                    ":/shaders/shaders/fnormal.glsl",
-                                    ":/shaders/shaders/ftexture.glsl",
-                                    ":/shaders/shaders/ftex2.glsl",
-                                    ":/shaders/shaders/fnormalmap.glsl",
-                                    ":/shaders/shaders/fcubemap.glsl"};
-
     destroyShaders();
 
-    shaderProgram.clear();
+    QFile vs(":/shaders/shaders/vtex2.glsl");
+    QFile fs(":/shaders/shaders/ftex2.glsl");
 
-    for (int i = 0; i < numShaders; ++i)
+    vs.open(QFile::ReadOnly | QFile::Text);
+    fs.open(QFile::ReadOnly | QFile::Text);
+
+    QTextStream streamVs(&vs), streamFs(&fs);
+
+    QString qtStringVs = streamVs.readAll();
+    QString qtStringFs = streamFs.readAll();
+
+    std::string stdStringVs = qtStringVs.toStdString();
+    std::string stdStringFs = qtStringFs.toStdString();
+    GLuint vertexShader = 0;
+    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+
+    // Send the vertex shader source code to GL
+    const GLchar *source = stdStringVs.c_str();
+
+    glShaderSource(vertexShader, 1, &source, nullptr);
+
+    // Compile the vertex shader
+    glCompileShader(vertexShader);
+
+    GLint isCompiled = 0;
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &isCompiled);
+    if (isCompiled == GL_FALSE)
     {
-        QFile vs(vertexShaderFile[i]);
-        QFile fs(fragmentShaderFile[i]);
-
-        vs.open(QFile::ReadOnly | QFile::Text);
-        fs.open(QFile::ReadOnly | QFile::Text);
-
-        QTextStream streamVs(&vs), streamFs(&fs);
-
-        QString qtStringVs = streamVs.readAll();
-        QString qtStringFs = streamFs.readAll();
-
-        std::string stdStringVs = qtStringVs.toStdString();
-        std::string stdStringFs = qtStringFs.toStdString();
-
-        // Create an empty vertex shader handle
-        GLuint vertexShader = 0;
-        vertexShader = glCreateShader(GL_VERTEX_SHADER);
-
-        // Send the vertex shader source code to GL
-        const GLchar *source = stdStringVs.c_str();
-
-        glShaderSource(vertexShader, 1, &source, 0);
-
-        // Compile the vertex shader
-        glCompileShader(vertexShader);
-
-        GLint isCompiled = 0;
-        glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &isCompiled);
-        if (isCompiled == GL_FALSE)
-        {
-            GLint maxLength = 0;
-            glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
-            // The maxLength includes the NULL character
-            std::vector<GLchar> infoLog(maxLength);
-            glGetShaderInfoLog(vertexShader, maxLength, &maxLength, &infoLog[0]);
-            qDebug("%s", &infoLog[0]);
-
-            glDeleteShader(vertexShader);
-            return;
-        }
-
-        // Create an empty fragment shader handle
-        GLuint fragmentShader = 0;
-        fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-
-        // Send the fragment shader source code to GL
-        // Note that std::string's .c_str is NULL character terminated.
-        source = stdStringFs.c_str();//(const GLchar *)stringFs.toStdString().c_str();
-        glShaderSource(fragmentShader, 1, &source, 0);
-
-        // Compile the fragment shader
-        glCompileShader(fragmentShader);
-
-        glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &isCompiled);
-        if (isCompiled == GL_FALSE)
-        {
-            GLint maxLength = 0;
-            glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &maxLength);
-
-            std::vector<GLchar> infoLog(maxLength);
-            glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, &infoLog[0]);
-            qDebug("%s", &infoLog[0]);
-
-            glDeleteShader(fragmentShader);
-            glDeleteShader(vertexShader);
-            return;
-        }
-
-        // Vertex and fragment shaders are successfully compiled.
-        // Now time to link them together into a program.
-        // Get a program object.
-        GLuint shaderProgramID = 0;
-        shaderProgramID = glCreateProgram();
-        shaderProgram.push_back(shaderProgramID);
-
-        // Attach our shaders to our program
-        glAttachShader(shaderProgramID, vertexShader);
-        glAttachShader(shaderProgramID, fragmentShader);
-
-        // Link our program
-        glLinkProgram(shaderProgramID);
-
-        // Note the different functions here: glGetProgram* instead of glGetShader*.
-        GLint isLinked = 0;
-        glGetProgramiv(shaderProgramID, GL_LINK_STATUS, (int *)&isLinked);
-        if (isLinked == GL_FALSE)
-        {
-            GLint maxLength = 0;
-            glGetProgramiv(shaderProgramID, GL_INFO_LOG_LENGTH, &maxLength);
-
-            // The maxLength includes the NULL character
-            std::vector<GLchar> infoLog(maxLength);
-            glGetProgramInfoLog(shaderProgramID, maxLength, &maxLength, &infoLog[0]);
-            qDebug("%s", &infoLog[0]);
-
-            glDeleteProgram(shaderProgramID);
-            glDeleteShader(vertexShader);
-            glDeleteShader(fragmentShader);
-            return;
-        }
-
-        glDetachShader(shaderProgramID, vertexShader);
-        glDetachShader(shaderProgramID, fragmentShader);
+        GLint maxLength = 0;
+        glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
+        // The maxLength includes the NULL character
+        std::vector<GLchar> infoLog(maxLength);
+        glGetShaderInfoLog(vertexShader, maxLength, &maxLength, &infoLog[0]);
+        qDebug("%s", &infoLog[0]);
 
         glDeleteShader(vertexShader);
-        glDeleteShader(fragmentShader);
-
-        vs.close();
-        fs.close();
+        return;
     }
+    GLuint fragmentShader = 0;
+    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+
+    // Send the fragment shader source code to GL
+    source = stdStringFs.c_str();
+    glShaderSource(fragmentShader, 1, &source, nullptr);
+
+    // Compile the fragment shader
+    glCompileShader(fragmentShader);
+
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &isCompiled);
+    if (isCompiled == GL_FALSE)
+    {
+        GLint maxLength = 0;
+        glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &maxLength);
+
+        std::vector<GLchar> infoLog(maxLength);
+        glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, &infoLog[0]);
+        qDebug("%s", &infoLog[0]);
+
+        glDeleteShader(fragmentShader);
+        glDeleteShader(vertexShader);
+        return;
+    }
+
+    shaderProgram = glCreateProgram();
+
+    // Attach our shaders to our program
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+
+    // Link our program
+    glLinkProgram(shaderProgram);
+
+    // Note the different functions here: glGetProgram* instead of glGetShader*.
+    GLint isLinked = 0;
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, (int *)&isLinked);
+    if (isLinked == GL_FALSE)
+    {
+        GLint maxLength = 0;
+        glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &maxLength);
+
+        // The maxLength includes the NULL character
+        std::vector<GLchar> infoLog(maxLength);
+        glGetProgramInfoLog(shaderProgram, maxLength, &maxLength, &infoLog[0]);
+        qDebug("%s", &infoLog[0]);
+
+        glDeleteProgram(shaderProgram);
+        glDeleteShader(vertexShader);
+        glDeleteShader(fragmentShader);
+        return;
+    }
+    glDetachShader(shaderProgram, vertexShader);
+    glDetachShader(shaderProgram, fragmentShader);
+
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    vs.close();
+    fs.close();
 }
 
-void Model::drawModel()
+void Model::drawModel(float x, float y, float z, float scale)
 {
     modelMatrix.setToIdentity();
-    modelMatrix.translate(0, 0, zoom);
-    modelMatrix.rotate(trackBall.getRotation());
-    modelMatrix.scale(invDiag, invDiag, invDiag);
+    modelMatrix.translate(x, y, z);
+    // modelMatrix.rotate(trackBall.getRotation());
+    modelMatrix.scale(scale, scale, scale);
     modelMatrix.translate(-midPoint);
 
     GLuint locModel = 0;
     GLuint locNormalMatrix = 0;
     GLuint locShininess = 0;
-    locModel = glGetUniformLocation(shaderProgram[shaderIndex], "model");
-    locNormalMatrix = glGetUniformLocation(shaderProgram[shaderIndex], "normalMatrix");
-    locShininess = glGetUniformLocation(shaderProgram[shaderIndex], "shininess");
+    locModel = glGetUniformLocation(shaderProgram, "model");
+    locNormalMatrix = glGetUniformLocation(shaderProgram, "normalMatrix");
+    locShininess = glGetUniformLocation(shaderProgram, "shininess");
 
     glBindVertexArray(vao);
 
@@ -259,7 +213,7 @@ void Model::drawModel()
     if (textureID)
     {
         GLuint locColorTexture = 0;
-        locColorTexture = glGetUniformLocation(shaderProgram[shaderIndex], "colorTexture");
+        locColorTexture = glGetUniformLocation(shaderProgram, "colorTexture");
         glUniform1i(locColorTexture, 0);
 
         glActiveTexture(GL_TEXTURE0);
@@ -269,7 +223,7 @@ void Model::drawModel()
     if (textureLayerID)
     {
         GLuint locColorTextureLayer = 1;
-        locColorTextureLayer = glGetUniformLocation(shaderProgram[shaderIndex], "colorTextureLayer");
+        locColorTextureLayer = glGetUniformLocation(shaderProgram, "colorTextureLayer");
         glUniform1i(locColorTextureLayer, 1);
 
         glActiveTexture(GL_TEXTURE1);
@@ -282,19 +236,27 @@ void Model::drawModel()
     }
 
     glDrawElements(GL_TRIANGLES, numFaces * 3, GL_UNSIGNED_INT, nullptr);
+
+    /* readOFFFile(":/models/models/m1119.off");
+    QImage image;
+    image.load(":/textures/textures/wheat.png");
+    image = image.convertToFormat(QImage::Format_RGBA8888);
+    loadTextureLayer(image);*/
 }
 
 void Model::readOFFFile(QString const &fileName)
 {
-    std::ifstream stream;
-    stream.open(fileName.toUtf8(),std::ifstream::in);
-    if (!stream.is_open())
+    QFile file(fileName);
+    file.open(QFile::ReadOnly | QFile::Text);
+    if (!file.isOpen())
     {
         qWarning("Cannot open file.");
         return;
     }
 
-    std::string line;
+    QTextStream stream(&file);
+
+    QString line;
     stream >> line;
     stream >> numVertices >> numFaces >> line;
 
@@ -332,7 +294,7 @@ void Model::readOFFFile(QString const &fileName)
         indices[i * 3 + 1] = b;
         indices[i * 3 + 2] = c;
     }
-    stream.close();
+    file.close();
 
     createNormals();
     createTexCoords();
@@ -531,4 +493,31 @@ void Model::loadCubeMapTexture()
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+}
+
+
+void Model::setLightAndCamera(Light light, Camera camera) {
+    GLuint shaderProgramID = shaderProgram;
+
+    QVector4D ambientProduct = light.ambient * material.ambient;
+    QVector4D diffuseProduct = light.diffuse * material.diffuse;
+    QVector4D specularProduct = light.specular * material.specular;
+
+    GLint locProjection = glGetUniformLocation(shaderProgramID, "projection");
+    GLint locView = glGetUniformLocation(shaderProgramID, "view");
+    GLint locLightPosition = glGetUniformLocation(shaderProgramID, "lightPosition");
+    GLint locAmbientProduct = glGetUniformLocation(shaderProgramID, "ambientProduct");
+    GLint locDiffuseProduct = glGetUniformLocation(shaderProgramID, "diffuseProduct");
+    GLint locSpecularProduct = glGetUniformLocation(shaderProgramID, "specularProduct");
+    GLint locShininess = glGetUniformLocation(shaderProgramID, "shininess");
+
+    glUseProgram(shaderProgramID);
+
+    glUniformMatrix4fv(locProjection, 1, GL_FALSE, camera.projectionMatrix.data());
+    glUniformMatrix4fv(locView, 1, GL_FALSE, camera.viewMatrix.data());
+    glUniform4fv(locLightPosition, 1, &(light.position[0]));
+    glUniform4fv(locAmbientProduct, 1, &(ambientProduct[0]));
+    glUniform4fv(locDiffuseProduct, 1, &(diffuseProduct[0]));
+    glUniform4fv(locSpecularProduct, 1, &(specularProduct[0]));
+    glUniform1f(locShininess, material.shininess);
 }

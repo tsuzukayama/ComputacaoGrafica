@@ -33,12 +33,16 @@ vec4 Phong(vec3 n)
 
 void main()
 {
+    float d = clamp(fE.z/100.0f, 0, 1); // Simulate black fog
     if (gl_FrontFacing)
     {
-        frag_color = vec4(Phong(fN).xyz, 1);
+
+        frag_color.rgb = Phong(fN).xyz * (1.0f - d);
+        frag_color.a = 1.0f;
     }
     else
     {
-        frag_color = mix(vec4(Phong(-fN).xyz, 1), vec4(0.0, 2.0, 0.0, 1.0), 0.7);
+        frag_color.rgb = mix((Phong(-fN).xyz * (1.0f - d)), vec3(0.0, 2.0, 0.0), 0.7);
+        frag_color.a = 1.0f;
     }
 }

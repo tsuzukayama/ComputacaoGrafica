@@ -15,6 +15,7 @@
 #include "light.h"
 #include "material.h"
 #include "trackball.h"
+#include "camera.h"
 
 class Model : public QOpenGLExtraFunctions
 {
@@ -59,19 +60,20 @@ public:
     void loadTextureLayer(const QImage &image);
     void loadCubeMapTexture();
 
-    void drawModel();
+    void setLightAndCamera(Light light, Camera camera);
+    void drawModel(float x, float y, float z, float scale = 1);
 
     QMatrix4x4 modelMatrix;
     QVector3D midPoint;
     double invDiag;
-    double zoom = 0;
+    // double z, x, y = 0;
 
     Material material;
 
     unsigned int shaderIndex;
     int numShaders;
 
-    std::vector<GLuint> shaderProgram;
+    GLuint shaderProgram;
 
     TrackBall trackBall;
 };

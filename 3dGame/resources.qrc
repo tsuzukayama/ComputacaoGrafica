@@ -6,6 +6,8 @@
         <file>cube/posx.jpg</file>
         <file>cube/posy.jpg</file>
         <file>cube/posz.jpg</file>
+        <file>textures/player_tex.jpeg</file>
+        <file>textures/wheat.png</file>
     </qresource>
     <qresource prefix="/shaders">
         <file>shaders/fcubemap.glsl</file>
@@ -28,5 +30,9 @@
         <file>shaders/vtexture.glsl</file>
         <file>shaders/ftoon.glsl</file>
         <file>shaders/vtoon.glsl</file>
+    </qresource>
+    <qresource prefix="/models">
+        <file>models/cube.off</file>
+        <file>models/m1119.off</file>
     </qresource>
 </RCC>

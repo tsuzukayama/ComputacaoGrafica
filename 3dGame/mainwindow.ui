@@ -31,107 +31,6 @@
       </property>
      </widget>
     </item>
-    <item>
-     <widget class="QCheckBox" name="bkgndColorCheckBox">
-      <property name="text">
-       <string>Black background</string>
-      </property>
-      <property name="checked">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QWidget" name="shaderWidget" native="true">
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>6</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QLabel" name="shaderLabel">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Shader:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="shaderComboBox">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="currentIndex">
-          <number>0</number>
-         </property>
-         <item>
-          <property name="text">
-           <string>0 - Depth as grayscale</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>1 - Flat Shading</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>2 - Gouraud Shading</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>3 - Phong Shading</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>4 - Toon Shading</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>5 - Normal as colors</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>6 - Texture Mapping</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>7 - Multiple Textures</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>8 - Normal Mapping</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>9 - Cube Mapping</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -140,14 +39,13 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <addaction name="actionOpen_File"/>
     <addaction name="separator"/>
     <addaction name="actionE_xit"/>
    </widget>
@@ -155,31 +53,11 @@
     <property name="title">
      <string>&amp;Texture</string>
     </property>
-    <addaction name="actionLoad_Texture"/>
-    <addaction name="actionLoad_Texture_Layer"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTExture"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="actionOpen_File">
-   <property name="text">
-    <string>&amp;Open...</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+O</string>
-   </property>
-  </action>
-  <action name="actionLoad_Texture">
-   <property name="text">
-    <string>Load &amp;Texture (Diffuse Map)...</string>
-   </property>
-  </action>
-  <action name="actionLoad_Texture_Layer">
-   <property name="text">
-    <string>Load Texture &amp;Layer or Normap Map...</string>
-   </property>
-  </action>
   <action name="actionE_xit">
    <property name="text">
     <string>E&amp;xit</string>
@@ -209,22 +87,6 @@
  <resources/>
  <connections>
   <connection>
-   <sender>actionOpen_File</sender>
-   <signal>triggered()</signal>
-   <receiver>openGLWidget</receiver>
-   <slot>showFileOpenDialog()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>317</x>
-     <y>207</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>openGLWidget</sender>
    <signal>statusBarMessage(QString)</signal>
    <receiver>statusBar</receiver>
@@ -241,70 +103,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>shaderComboBox</sender>
-   <signal>currentIndexChanged(int)</signal>
-   <receiver>openGLWidget</receiver>
-   <slot>changeShader(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>299</x>
-     <y>363</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>299</x>
-     <y>194</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>openGLWidget</sender>
-   <signal>enableComboShaders(bool)</signal>
-   <receiver>shaderComboBox</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>299</x>
-     <y>194</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>299</x>
-     <y>363</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionLoad_Texture</sender>
-   <signal>triggered()</signal>
-   <receiver>openGLWidget</receiver>
-   <slot>loadTexture()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>299</x>
-     <y>194</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionLoad_Texture_Layer</sender>
-   <signal>triggered()</signal>
-   <receiver>openGLWidget</receiver>
-   <slot>loadTextureLayer()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>299</x>
-     <y>194</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>actionE_xit</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
@@ -317,22 +115,6 @@
     <hint type="destinationlabel">
      <x>299</x>
      <y>201</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>bkgndColorCheckBox</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>openGLWidget</receiver>
-   <slot>toggleBackgroundColor(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>299</x>
-     <y>512</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>299</x>
-     <y>263</y>
     </hint>
    </hints>
   </connection>

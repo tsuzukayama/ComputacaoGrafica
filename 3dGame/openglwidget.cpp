@@ -2,23 +2,15 @@
 
 OpenGLWidget::OpenGLWidget(QWidget * parent) : QOpenGLWidget(parent)
 {
-}
+    numEnemies = 10;
+    score = 0;
+    speed = 5;
 
-void OpenGLWidget::changeShader(int shaderIndex)
-{
-    if (!model)
-        return;
+    for(int i = 0; i < NUM_MAX_ENEMIES; ++i) {
+        QVector3D pos;
 
-    model->shaderIndex = shaderIndex;
-    update();
-}
-
-void OpenGLWidget::wheelEvent(QWheelEvent *event)
-{
-   if(!model)
-       return;
-
-   model->zoom += 0.001 * event->delta();
+        enemyPos.insert(enemyPos.begin() + i, pos);
+    }
 }
 
 void OpenGLWidget::initializeGL()
@@ -32,169 +24,137 @@ void OpenGLWidget::initializeGL()
 
     connect(&timer, SIGNAL(timeout()), this, SLOT(animate()));
     timer.start(0);
+    time.start();
+    model = std::make_shared<Model>(this);
+    enemy = std::make_shared<Model>(this);
+
+    // set enemiees
+    for(int i=0; i<NUM_MAX_ENEMIES; ++i)
+    {
+        QVector3D pos = enemyPos[i];
+
+        float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
+        float radius = 1 + (qrand() / (float)RAND_MAX) * 2;
+        float x = cos(ang) * radius;
+        float y = sin(ang) * radius;
+        float z = -50 + sin(ang) * radius;
+        pos.setX(x);
+        pos.setY(y);
+        pos.setZ(z);
+        qDebug("%f, %f", x, y);
+
+        pos.setZ(-10);
+        enemyPos[i] = pos;
+    }
+
 }
 
 void OpenGLWidget::paintGL()
 {
     glViewport(0, 0, width(), height());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // glClearColor(1, 1, 1, 1);
 
+    // load player
     if (!model)
         return;
 
-    GLuint shaderProgramID = model->shaderProgram[model->shaderIndex];
+    model->setLightAndCamera(light, camera);
+    model->readOFFFile(":/models/models/m1119.off");
 
-    QVector4D ambientProduct = light.ambient * model->material.ambient;
-    QVector4D diffuseProduct = light.diffuse * model->material.diffuse;
-    QVector4D specularProduct = light.specular * model->material.specular;
+    QImage playerTex;
+    playerTex.load(":/textures/textures/wheat.png");
+    playerTex = playerTex.convertToFormat(QImage::Format_RGBA8888);
+    model->loadTextureLayer(playerTex);
 
-    GLint locProjection = glGetUniformLocation(shaderProgramID, "projection");
-    GLint locView = glGetUniformLocation(shaderProgramID, "view");
-    GLint locLightPosition = glGetUniformLocation(shaderProgramID, "lightPosition");
-    GLint locAmbientProduct = glGetUniformLocation(shaderProgramID, "ambientProduct");
-    GLint locDiffuseProduct = glGetUniformLocation(shaderProgramID, "diffuseProduct");
-    GLint locSpecularProduct = glGetUniformLocation(shaderProgramID, "specularProduct");
-    GLint locShininess = glGetUniformLocation(shaderProgramID, "shininess");
+    model->drawModel(modelPos.x(), modelPos.y(), modelPos.z(), 0.5);
 
-    glUseProgram(shaderProgramID);
+    // load enemies
+    if (!enemy)
+        return;
 
-    glUniformMatrix4fv(locProjection, 1, GL_FALSE, camera.projectionMatrix.data());
-    glUniformMatrix4fv(locView, 1, GL_FALSE, camera.viewMatrix.data());
-    glUniform4fv(locLightPosition, 1, &(light.position[0]));
-    glUniform4fv(locAmbientProduct, 1, &(ambientProduct[0]));
-    glUniform4fv(locDiffuseProduct, 1, &(diffuseProduct[0]));
-    glUniform4fv(locSpecularProduct, 1, &(specularProduct[0]));
-    glUniform1f(locShininess, model->material.shininess);
+    enemy->setLightAndCamera(light, camera);
+    enemy->readOFFFile(":/models/models/cube.off");
 
-    model->drawModel();
+    QImage enemyTex;
+    enemyTex.load(":/textures/textures/wheat.png");
+    enemyTex = enemyTex.convertToFormat(QImage::Format_RGBA8888);
+    enemy->loadTextureLayer(enemyTex);
+
+    for(int i = 0; i < floor(numEnemies); ++i) {
+        enemy->drawModel(enemyPos[i].x(), enemyPos[i].y(), enemyPos[i].z(), 0.1);
+    }
+
 }
 
 void OpenGLWidget::resizeGL(int width, int height)
 {
     camera.resizeViewport(width, height);
-
-    if (model)
-        model->trackBall.resizeViewport(width, height);
-
-    update();
-}
-
-void OpenGLWidget::showFileOpenDialog()
-{
-    QByteArray fileFormat = "off";
-    QString fileName = QFileDialog::getOpenFileName(this,
-        "Open File", QDir::homePath(),
-        QString("\%1 Files (*.\%2)").arg(QString(fileFormat.toUpper())).arg(QString(fileFormat)), nullptr
-#ifdef Q_OS_LINUX
-        , QFileDialog::DontUseNativeDialog
-#endif
-    );
-    int shaderIndex = 0;
-    if (!fileName.isEmpty())
-    {
-        if (model)
-            shaderIndex = model->shaderIndex;
-
-        model = std::make_shared<Model>(this);
-        model->shaderIndex = shaderIndex;
-        model->readOFFFile(fileName);
-
-        model->trackBall.resizeViewport(width(), height());
-
-        emit statusBarMessage(QString("Vertices: \%1, Faces: \%2").arg(model->numVertices).arg(model->numFaces));
-        emit enableComboShaders(true);
-    }
     update();
 }
 
 void OpenGLWidget::animate()
 {
-    update();
-}
+    float elapsedTime = time.restart() / 1000.0f;
 
-void OpenGLWidget::mouseMoveEvent(QMouseEvent *event)
-{
-    if (!model)
-        return;
+    // move player
+    if (modelPos.x() < -1) {
+        modelPos.setX(-1);
+    } else if (modelPos.x() > 1){
+        modelPos.setX(1);
+    }else
+        modelPos.setX(modelPos.x() + (playerPosXOffsetLeft + playerPosXOffsetRight) * elapsedTime);
 
-    model->trackBall.mouseMove(event->localPos());
-}
+    if (modelPos.y() < -1) {
+        modelPos.setY(-1);
+    } else if (modelPos.y() > 1){
+        modelPos.setY(1);
+    }else
+        modelPos.setY(modelPos.y() + (playerPosYOffsetUp + playerPosYOffsetDown) * elapsedTime);
 
-void OpenGLWidget::mousePressEvent(QMouseEvent *event)
-{
-    if (!model)
-        return;
+    // update enemies
+    for(int i = 0; i < floor(numEnemies); ++i) {
+        if(enemyPos[i].z() >= 1.0f){
+            float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
+            float radius = 1 + (qrand() / (float)RAND_MAX) * 2;
+            float x = cos(ang) * radius;
+            float y = sin(ang) * radius;
+            float z = -50 + sin(ang) * radius;
+            enemyPos[i].setX(x);
+            enemyPos[i].setY(y);
+            enemyPos[i].setZ(z);
 
-    if (event->button() & Qt::LeftButton)
-        model->trackBall.mousePress(event->localPos());
-}
-
-void OpenGLWidget::mouseReleaseEvent(QMouseEvent *event)
-{
-    if (!model)
-        return;
-
-    if (event->button() & Qt::LeftButton)
-        model->trackBall.mouseRelease(event->localPos());
-}
-
-void OpenGLWidget::loadTexture()
-{
-    QString fileName = QFileDialog::getOpenFileName(this,
-        QString("Open Image File"), "",
-        QString("JPEG (*.jpg *.jpeg);;PNG (*.png)"), nullptr
-#ifdef Q_OS_LINUX
-        , QFileDialog::DontUseNativeDialog
-#endif
-                                                   );
-    if (!fileName.isEmpty() && model)
-    {
-        QImage image;
-        image.load(fileName);
-        image = image.convertToFormat(QImage::Format_RGBA8888);
-
-        model->loadTexture(image);
+        }
+        else enemyPos[i].setZ(enemyPos[i].z() + speed * elapsedTime);
     }
+
+    speed += 0.01;
+    if (numEnemies < NUM_MAX_ENEMIES)
+        numEnemies += 0.01;
     update();
 }
 
-void OpenGLWidget::loadTextureLayer()
-{
-    QString fileName = QFileDialog::getOpenFileName(this,
-        QString("Open Image File"), "",
-        QString("JPEG (*.jpg *.jpeg);;PNG (*.png)"), nullptr
-#ifdef Q_OS_LINUX
-        , QFileDialog::DontUseNativeDialog
-#endif
-                                                    );
-    if (!fileName.isEmpty() && model)
-    {
-        QImage image;
-        image.load(fileName);
-        image = image.convertToFormat(QImage::Format_RGBA8888);
 
-        model->loadTextureLayer(image);
-    }
-    update();
-}
-
-// Strong focus is required
 void OpenGLWidget::keyPressEvent(QKeyEvent *event)
 {
-    if (event->key() == Qt::Key_Escape)
-    {
-        QApplication::quit();
-    }
+    if (event->key() == Qt::Key_Right) playerPosXOffsetRight = 1.0f;
+    if (event->key() == Qt::Key_Left) playerPosXOffsetLeft = -1.0f;
+
+    if (event->key() == Qt::Key_Up) playerPosYOffsetDown = 1.0f;
+    if (event->key() == Qt::Key_Down) playerPosYOffsetUp = -1.0f;
 }
 
-void OpenGLWidget::toggleBackgroundColor(bool changeBColor)
+void OpenGLWidget::keyReleaseEvent(QKeyEvent *event)
 {
-    makeCurrent();
+    if (event->key() == Qt::Key_Right )
+        playerPosXOffsetRight = 0;
 
-    if (changeBColor)
-         glClearColor(0, 0, 0, 1);
-    else
-         glClearColor(1, 1, 1, 1);
+    if (event->key() == Qt::Key_Left)
+        playerPosXOffsetLeft = 0;
 
-    update();
+    if (event->key() == Qt::Key_Up)
+        playerPosYOffsetDown = 0;
+
+    if (event->key() == Qt::Key_Down)
+        playerPosYOffsetUp = 0;
 }

@@ -10,7 +10,7 @@ public:
 
     Camera();
 
-    QVector3D eye = QVector3D(0, 0, 1.5f);
+    QVector3D eye = QVector3D(0, 0.2f, 1.5f);
     QVector3D center = QVector3D(0, 0, 0);
     QVector3D up = QVector3D(0, 1, 0);
 
@@ -19,6 +19,7 @@ public:
 
     void computeViewMatrix();
     void resizeViewport(int width, int height);
+    float width, height;
 };
 
 #endif // CAMERA_H

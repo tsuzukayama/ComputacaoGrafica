@@ -34,5 +34,6 @@
     <qresource prefix="/models">
         <file>models/cube.off</file>
         <file>models/m1119.off</file>
+        <file>models/spacecraft.off</file>
     </qresource>
 </RCC>

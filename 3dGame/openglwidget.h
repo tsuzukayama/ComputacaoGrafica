@@ -11,6 +11,7 @@
 #include "camera.h"
 
 #define NUM_MAX_ENEMIES 1000
+#define NUM_MAX_BULLETS 10
 
 class OpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
 {
@@ -20,7 +21,7 @@ public:
     OpenGLWidget(QWidget *parent = nullptr);
 
     QTimer timer;
-    QTime time;
+    QTime time, bulletTime;
 
 signals:
     void statusBarMessage(QString);
@@ -34,14 +35,18 @@ protected:
     void resizeGL(int width, int height);
     void paintGL();
 
-    std::shared_ptr<Model> model, enemy;
+    std::shared_ptr<Model> model, enemy, bullet;
 
     std::vector<QVector3D> enemyPos;
+    std::vector<QVector3D> bulletPos;
     QVector3D modelPos = QVector3D(0, 0, 0);
 
     float numEnemies; // number of enemies
+    float numBullets; // number of bullets
     float score; // Number of hits
     float speed; // game speed
+
+    boolean shooting; // check if new bullet was fired
 
     Light light;
     Camera camera;

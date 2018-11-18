@@ -1,5 +1,5 @@
-#ifndef MODEL_H
-#define MODEL_H
+#ifndef WORLDBOX_H
+#define WORLDBOX_H
 
 #include <QtOpenGL>
 #include <QOpenGLWidget>
@@ -12,16 +12,13 @@
 #include <iostream>
 #include <memory>
 
-#include "light.h"
-#include "material.h"
-#include "trackball.h"
 #include "camera.h"
 
-class Model : public QOpenGLExtraFunctions
+class WorldBox : public QOpenGLExtraFunctions
 {
 public:
-    Model(QOpenGLWidget *_glWidget);
-    ~Model();
+    WorldBox(QOpenGLWidget *_glWidget);
+    ~WorldBox();
 
     std::unique_ptr<QVector4D []> vertices;
     std::unique_ptr<QVector3D []> normals;
@@ -52,30 +49,25 @@ public:
     void createVBOs();
     void destroyVBOs();
 
-    void createShaders(QString shaderName);
+    void createShaders();
     void destroyShaders();
 
-    void readOFFFile(const QString &fileName, QString shaderName = "phong");
+    void readOFFFile(const QString &fileName);
     void loadTexture(const QImage &image);
     void loadTextureLayer(const QImage &image);
     void loadCubeMapTexture();
 
-    void setLightAndCamera(Light light, Camera camera);
-    void drawModel(float x, float y, float z, float scale = 1, float rotX = 0, float rotY = 0, float rotZ = 0);
+    void drawWorldBox(float x, float y, float z, float scale = 1);
 
     QMatrix4x4 modelMatrix;
     QVector3D midPoint;
     double invDiag;
     // double z, x, y = 0;
 
-    Material material;
-
     unsigned int shaderIndex;
     int numShaders;
 
     GLuint shaderProgram;
-
-    TrackBall trackBall;
 };
 
 #endif // MODEL_H

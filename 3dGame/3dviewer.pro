@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     material.cpp \
     camera.cpp \
     trackball.cpp \
-    model.cpp
+    model.cpp \
+    worldbox.cpp
 
 HEADERS  += mainwindow.h \
     openglwidget.h \
@@ -28,7 +29,8 @@ HEADERS  += mainwindow.h \
     material.h \
     camera.h \
     trackball.h \
-    model.h
+    model.h \
+    worldbox.h
 
 FORMS    += mainwindow.ui
 

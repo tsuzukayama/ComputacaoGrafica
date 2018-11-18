@@ -9,6 +9,7 @@
 #include "light.h"
 #include "model.h"
 #include "camera.h"
+#include "worldbox.h"
 
 #define NUM_MAX_ENEMIES 1000
 #define NUM_MAX_BULLETS 10
@@ -35,7 +36,7 @@ protected:
     void resizeGL(int width, int height);
     void paintGL();
 
-    std::shared_ptr<Model> model, enemy, bullet;
+    std::shared_ptr<Model> model, enemy, bullet, worldBox;
 
     QVector3D enemyPos[NUM_MAX_ENEMIES];
     std::vector<QVector3D> bulletPos;

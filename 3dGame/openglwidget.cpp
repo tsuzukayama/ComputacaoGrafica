@@ -28,6 +28,7 @@ void OpenGLWidget::initializeGL()
     model = std::make_shared<Model>(this);
     enemy = std::make_shared<Model>(this);
     bullet = std::make_shared<Model>(this);
+    worldBox = std::make_shared<Model>(this);
 
     // set enemies
     for(int i=0; i<NUM_MAX_ENEMIES; ++i)
@@ -45,6 +46,13 @@ void OpenGLWidget::initializeGL()
         pos.setZ(-50);
         enemyPos[i] = pos;
     }
+
+    enemy->material.ambient = QVector4D(1.0f, 0.02f, 0.02f, 1.0f);
+    model->material.ambient = QVector4D(0.02f, 0.02f, 1.0f, 1.0f);
+
+    model->readOFFFile(":/models/models/player_ship_grey.off", "phong");
+    enemy->readOFFFile(":/models/models/enemy_ship.off", "phong");
+    worldBox->readOFFFile(":/models/models/cube.off", "cubemap");
 }
 
 void OpenGLWidget::paintGL()
@@ -58,26 +66,15 @@ void OpenGLWidget::paintGL()
         return;
 
     model->setLightAndCamera(light, camera);
-    model->readOFFFile(":/models/models/m1119.off");
 
-    QImage playerTex;
-    playerTex.load(":/textures/textures/wheat.png");
-    playerTex = playerTex.convertToFormat(QImage::Format_RGBA8888);
-    model->loadTextureLayer(playerTex);
-
-    model->drawModel(modelPos.x(), modelPos.y(), modelPos.z(), 0.5);
+    model->drawModel(modelPos.x(), modelPos.y(), modelPos.z(), 0.5, 90, 0, 90);
 
     // load enemies
     if (!enemy)
         return;
 
     enemy->setLightAndCamera(light, camera);
-    enemy->readOFFFile(":/models/models/cube.off");
-
-    QImage enemyTex;
-    enemyTex.load(":/textures/textures/wheat.png");
-    enemyTex = enemyTex.convertToFormat(QImage::Format_RGBA8888);
-    enemy->loadTextureLayer(enemyTex);
+    // make enemies red
 
     for(int i = 0; i < floor(numEnemies); ++i) {
         enemy->drawModel(enemyPos[i].x(), enemyPos[i].y(), enemyPos[i].z(), 0.3);
@@ -89,14 +86,14 @@ void OpenGLWidget::paintGL()
 
     bullet->setLightAndCamera(light, camera);
     bullet->readOFFFile(":/models/models/cube.off");
-    QImage bulletTex;
-    bulletTex.load(":/textures/textures/wheat.png");
-    bulletTex = bulletTex.convertToFormat(QImage::Format_RGBA8888);
-    bullet->loadTextureLayer(bulletTex);
 
     for ( auto &pos : bulletPos ) {
         bullet->drawModel(pos.x(), pos.y(), pos.z(), 0.1);
     }
+
+    // load worldBox
+    // worldBox->loadCubeMapTexture();
+    // worldBox->drawModel(0, 0, 0, 2);
 }
 
 void OpenGLWidget::resizeGL(int width, int height)
@@ -137,23 +134,23 @@ void OpenGLWidget::animate()
         for(int i = 0; i < floor(numEnemies); ++i) {
 
             // check collision with player
-            if (modelPos.y() > enemyPos[i].y() - (0.2f + 0.15f) &&
-                modelPos.y() < enemyPos[i].y() + (0.2f + 0.15f) &&
-                modelPos.x() > enemyPos[i].x() - (0.2f + 0.3f ) &&
-                modelPos.x() < enemyPos[i].x() + (0.2f + 0.3f ) &&
-                modelPos.z() > enemyPos[i].z() - (0.2f + 0.3f ) &&
-                modelPos.z() < enemyPos[i].z() + (0.2f + 0.3f ))
+            if (modelPos.y() > enemyPos[i].y() - (0.0f + 0.15f) &&
+                modelPos.y() < enemyPos[i].y() + (0.0f + 0.15f) &&
+                modelPos.x() > enemyPos[i].x() - (0.0f + 0.3f ) &&
+                modelPos.x() < enemyPos[i].x() + (0.0f + 0.3f ) &&
+                modelPos.z() > enemyPos[i].z() - (0.0f + 0.3f ) &&
+                modelPos.z() < enemyPos[i].z() + (0.0f + 0.3f ))
             {
                 isPlayerDead = true;
             }
             // check collision with bullet
             for ( auto &bullet : bulletPos ) {
-                if (bullet.y() > enemyPos[i].y() - (0.2f + 0.15f) &&
-                    bullet.y() < enemyPos[i].y() + (0.2f + 0.15f) &&
-                    bullet.x() > enemyPos[i].x() - (0.2f + 0.35f) &&
-                    bullet.x() < enemyPos[i].x() + (0.2f + 0.35f) &&
-                    bullet.z() > enemyPos[i].z() - (0.2f + 0.35f) &&
-                    bullet.z() < enemyPos[i].z() + (0.2f + 0.35f))
+                if (bullet.y() > enemyPos[i].y() - (0.0f + 0.15f) &&
+                    bullet.y() < enemyPos[i].y() + (0.0f + 0.15f) &&
+                    bullet.x() > enemyPos[i].x() - (0.0f + 0.35f) &&
+                    bullet.x() < enemyPos[i].x() + (0.0f + 0.35f) &&
+                    bullet.z() > enemyPos[i].z() - (0.0f + 0.35f) &&
+                    bullet.z() < enemyPos[i].z() + (0.0f + 0.35f))
                 {
                     QVector3D pos = enemyPos[i];
                     float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
@@ -179,11 +176,11 @@ void OpenGLWidget::animate()
                 QVector3D pos = enemyPos[i];
                 float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
                 float radius = 1 + (qrand() / (float)RAND_MAX) * 2;
-                //float x = rand()%(2-(-2) + 1) + (-2);
-                //float y = rand()%(2-(-2) + 1) + (-2);
+                float x = rand()%(2-(-2) + 1) + (-2);
+                float y = rand()%(2-(-2) + 1) + (-2);
 
-                float x = 0;
-                float y = 0;
+                //float x = 0;
+                //float y = 0;
                 float z = -((qrand() / (float)RAND_MAX) * 100.0f);
 
                 pos.setX(x);

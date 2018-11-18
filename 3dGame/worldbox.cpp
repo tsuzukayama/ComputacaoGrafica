@@ -1,7 +1,7 @@
-#include "model.h"
+#include "worldbox.h"
 
-Model::Model(QOpenGLWidget *_glWidget)
-{   
+WorldBox::WorldBox(QOpenGLWidget *_glWidget)
+{
     glWidget = _glWidget;
     glWidget->makeCurrent();
 
@@ -11,13 +11,13 @@ Model::Model(QOpenGLWidget *_glWidget)
     numShaders = 0;
 }
 
-Model::~Model()
+WorldBox::~WorldBox()
 {
     destroyVBOs();
     destroyShaders();
 }
 
-void Model::destroyVBOs()
+void WorldBox::destroyVBOs()
 {
     glDeleteBuffers(1, &vboVertices);
     glDeleteBuffers(1, &vboIndices);
@@ -35,7 +35,7 @@ void Model::destroyVBOs()
     vao = 0;
 }
 
-void Model::createVBOs()
+void WorldBox::createVBOs()
 {
     glWidget->makeCurrent();
 
@@ -80,19 +80,17 @@ void Model::createVBOs()
 }
 
 
-void Model::destroyShaders ()
+void WorldBox::destroyShaders ()
 {
     glDeleteProgram(shaderProgram);
 }
 
-void Model::createShaders(QString shaderName)
+void WorldBox::createShaders()
 {
     destroyShaders();
 
-    QString vShaderPath = QString(":/shaders/shaders/v%1.glsl").arg(shaderName);
-    QString fShaderPath = QString(":/shaders/shaders/f%1.glsl").arg(shaderName);
-    QFile vs(vShaderPath);
-    QFile fs(fShaderPath);
+    QFile vs(":/shaders/shaders/vcubemap.glsl");
+    QFile fs(":/shaders/shaders/fcubemap.glsl");
 
     vs.open(QFile::ReadOnly | QFile::Text);
     fs.open(QFile::ReadOnly | QFile::Text);
@@ -191,28 +189,24 @@ void Model::createShaders(QString shaderName)
     fs.close();
 }
 
-void Model::drawModel(float x, float y, float z, float scale, float rotX, float rotY, float rotZ)
+void WorldBox::drawWorldBox(float x, float y, float z, float scale)
 {
     modelMatrix.setToIdentity();
     modelMatrix.translate(x, y, z);
-    modelMatrix.rotate(rotX, QVector3D(1, 0, 0));
-    modelMatrix.rotate(rotY, QVector3D(0, 1, 0));
-    modelMatrix.rotate(rotZ, QVector3D(0, 0, 1));
     modelMatrix.scale(scale, scale, scale);
     modelMatrix.translate(-midPoint);
 
-    GLuint locModel = 0;
+    GLuint locWorldBox = 0;
     GLuint locNormalMatrix = 0;
     GLuint locShininess = 0;
-    locModel = glGetUniformLocation(shaderProgram, "model");
+    locWorldBox = glGetUniformLocation(shaderProgram, "model");
     locNormalMatrix = glGetUniformLocation(shaderProgram, "normalMatrix");
     locShininess = glGetUniformLocation(shaderProgram, "shininess");
 
     glBindVertexArray(vao);
 
-    glUniformMatrix4fv(locModel, 1, GL_FALSE, modelMatrix.data());
+    glUniformMatrix4fv(locWorldBox, 1, GL_FALSE, modelMatrix.data());
     glUniformMatrix3fv(locNormalMatrix, 1, GL_FALSE, modelMatrix.normalMatrix().data());
-    glUniform1f(locShininess, static_cast<GLfloat>(material.shininess));
 
     if (textureID)
     {
@@ -248,7 +242,7 @@ void Model::drawModel(float x, float y, float z, float scale, float rotX, float 
     loadTextureLayer(image);*/
 }
 
-void Model::readOFFFile(QString const &fileName, QString shaderName)
+void WorldBox::readOFFFile(QString const &fileName)
 {
     QFile file(fileName);
     file.open(QFile::ReadOnly | QFile::Text);
@@ -303,11 +297,11 @@ void Model::readOFFFile(QString const &fileName, QString shaderName)
     createNormals();
     createTexCoords();
     createTangents();
-    createShaders(shaderName);
+    createShaders();
     createVBOs();
 }
 
-void Model::createNormals()
+void WorldBox::createNormals()
 {
     normals = std::make_unique<QVector3D[]>(numVertices);
 
@@ -330,7 +324,7 @@ void Model::createNormals()
     }
 }
 
-void Model::createTexCoords()
+void WorldBox::createTexCoords()
 {
     texCoords = std::make_unique<QVector2D[]>(numVertices);
 
@@ -352,7 +346,7 @@ void Model::createTexCoords()
     }
 }
 
-void Model::createTangents()
+void WorldBox::createTangents()
 {
     tangents = std::make_unique<QVector4D[]>(numVertices);
 
@@ -413,43 +407,7 @@ void Model::createTangents()
     }
 }
 
-void Model::loadTexture(const QImage &image)
-{
-    if (textureID)
-    {
-        glDeleteTextures(1, &textureID);
-    }
-
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.bits());
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glGenerateMipmap(GL_TEXTURE_2D);
-}
-
-void Model::loadTextureLayer(const QImage &image)
-{   
-    if (textureLayerID)
-    {
-        glDeleteTextures(1, &textureLayerID);
-    }
-
-    glGenTextures(1, &textureLayerID);
-    glBindTexture(GL_TEXTURE_2D, textureLayerID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.bits());
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glGenerateMipmap(GL_TEXTURE_2D);
-}
-
-void Model::loadCubeMapTexture()
+void WorldBox::loadCubeMapTexture()
 {
     /*
     QString folderName = "Some folder containing the cube maps";
@@ -499,29 +457,3 @@ void Model::loadCubeMapTexture()
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 }
 
-
-void Model::setLightAndCamera(Light light, Camera camera) {
-    GLuint shaderProgramID = shaderProgram;
-
-    QVector4D ambientProduct = light.ambient * material.ambient;
-    QVector4D diffuseProduct = light.diffuse * material.diffuse;
-    QVector4D specularProduct = light.specular * material.specular;
-
-    GLint locProjection = glGetUniformLocation(shaderProgramID, "projection");
-    GLint locView = glGetUniformLocation(shaderProgramID, "view");
-    GLint locLightPosition = glGetUniformLocation(shaderProgramID, "lightPosition");
-    GLint locAmbientProduct = glGetUniformLocation(shaderProgramID, "ambientProduct");
-    GLint locDiffuseProduct = glGetUniformLocation(shaderProgramID, "diffuseProduct");
-    GLint locSpecularProduct = glGetUniformLocation(shaderProgramID, "specularProduct");
-    GLint locShininess = glGetUniformLocation(shaderProgramID, "shininess");
-
-    glUseProgram(shaderProgramID);
-
-    glUniformMatrix4fv(locProjection, 1, GL_FALSE, camera.projectionMatrix.data());
-    glUniformMatrix4fv(locView, 1, GL_FALSE, camera.viewMatrix.data());
-    glUniform4fv(locLightPosition, 1, &(light.position[0]));
-    glUniform4fv(locAmbientProduct, 1, &(ambientProduct[0]));
-    glUniform4fv(locDiffuseProduct, 1, &(diffuseProduct[0]));
-    glUniform4fv(locSpecularProduct, 1, &(specularProduct[0]));
-    glUniform1f(locShininess, material.shininess);
-}

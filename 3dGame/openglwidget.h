@@ -10,7 +10,7 @@
 #include "model.h"
 #include "camera.h"
 
-#define NUM_MAX_ENEMIES 10
+#define NUM_MAX_ENEMIES 1000
 #define NUM_MAX_BULLETS 10
 
 class OpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
@@ -43,6 +43,7 @@ protected:
 
     float numEnemies; // number of enemies
     float score; // Number of hits
+    float maxScore;
     float speed; // game speed
     float bulletSpeed; // bullet speed
 
@@ -57,6 +58,7 @@ protected:
     void updateScene(int);
     void keyPressEvent(QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
+    void resetGame();
 };
 
 #endif // OPENGLWIDGET_H

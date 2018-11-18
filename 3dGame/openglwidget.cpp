@@ -5,17 +5,9 @@ OpenGLWidget::OpenGLWidget(QWidget * parent) : QOpenGLWidget(parent)
     numEnemies = 10;
     score = 0;
     speed = 5;
-    shooting = false;
-    numBullets = 0;
-
-    // create enemy vector
-    for(int i = 0; i < NUM_MAX_ENEMIES; ++i) {
-        QVector3D pos;
-        enemyPos.insert(enemyPos.begin() + i, pos);
-    }
-
-    // create enemy vector
-
+    shooting = false;    
+    bulletSpeed = 25;
+    isPlayerDead = false;
 }
 
 void OpenGLWidget::initializeGL()
@@ -53,7 +45,6 @@ void OpenGLWidget::initializeGL()
         pos.setZ(-10);
         enemyPos[i] = pos;
     }
-
 }
 
 void OpenGLWidget::paintGL()
@@ -121,7 +112,7 @@ void OpenGLWidget::animate()
 {
     float elapsedTime = time.restart() / 1000.0f;
 
-    qDebug("elapsed: %i", bulletTime.elapsed());
+    qDebug("bullet vec size: %i", bulletPos.size());
 
     float xBorder = 1.8f;
     float yBorder = 0.8f;
@@ -143,16 +134,43 @@ void OpenGLWidget::animate()
 
     // update enemies
     for(int i = 0; i < floor(numEnemies); ++i) {
+
+        // check collision with player
+        if (modelPos.y() > enemyPos[i].y() - 0.05f &&
+            modelPos.y() < enemyPos[i].y() + 0.05f &&
+            modelPos.x() > enemyPos[i].x() - 0.05f &&
+            modelPos.x() < enemyPos[i].x() + 0.05f &&
+            modelPos.z() > enemyPos[i].z() - 0.05f &&
+            modelPos.z() < enemyPos[i].z() + 0.05f)
+        {
+            isPlayerDead = true;
+        }
+        // check collision with bullet
+        for ( auto &bullet : bulletPos ) {
+            if (bullet.y() > enemyPos[i].y() - 0.15f &&
+                bullet.y() < enemyPos[i].y() + 0.15f &&
+                bullet.x() > enemyPos[i].x() - 0.35f &&
+                bullet.x() < enemyPos[i].x() + 0.35f &&
+                bullet.z() > enemyPos[i].z() - 0.35f &&
+                bullet.z() < enemyPos[i].z() + 0.35f)
+            {
+                qDebug("bala neles");
+            }
+        }
+
+        // check if reached end of screen
         if(enemyPos[i].z() >= 1.0f){
+            QVector3D pos = enemyPos[i];
             float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
             float radius = 1 + (qrand() / (float)RAND_MAX) * 2;
             float x = rand()%(2-(-2) + 1) + (-2);
             float y = rand()%(2-(-2) + 1) + (-2);
             float z = -((qrand() / (float)RAND_MAX) * 100.0f);
 
-            enemyPos[i].setX(x);
-            enemyPos[i].setY(y);
-            enemyPos[i].setZ(z);
+            pos.setX(x);
+            pos.setY(y);
+            pos.setZ(z);
+            enemyPos[i] = pos;
 
         }
         else enemyPos[i].setZ(enemyPos[i].z() + speed * elapsedTime);
@@ -162,12 +180,12 @@ void OpenGLWidget::animate()
 
     // Move projectile
     for ( auto &bullet : bulletPos ) {
-        bullet.setZ(bullet.z() - 3.0f * elapsedTime);
+        bullet.setZ(bullet.z() - bulletSpeed * elapsedTime);
 
         // Check whether the projectile missed the target
         if (bullet.z() < -10.0f)
         {
-            qDebug("Missed");
+            bulletPos.erase(bulletPos.begin());
         }
     }
 

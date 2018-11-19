@@ -20,3 +20,17 @@ void Camera::resizeViewport(int width, int height)
     this->height = height;
     this->width  = width;
 }
+
+void Camera::moveCamera(float x, float y, float z)
+{
+    eye.setX(x);
+    center.setX(x);
+
+    eye.setY(y);
+    center.setY(y);
+
+    eye.setZ(z);
+    center.setZ(z);
+
+    computeViewMatrix();
+}

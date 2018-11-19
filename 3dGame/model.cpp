@@ -191,15 +191,15 @@ void Model::createShaders(QString shaderName)
     fs.close();
 }
 
-void Model::drawModel(float x, float y, float z, float scale, float rotX, float rotY, float rotZ)
+void Model::drawModel(float x, float y, float z, QVector3D scale, QVector3D rotation)
 {
     modelMatrix.setToIdentity();
     modelMatrix.translate(x, y, z);
-    modelMatrix.rotate(rotX, QVector3D(1, 0, 0));
-    modelMatrix.rotate(rotY, QVector3D(0, 1, 0));
-    modelMatrix.rotate(rotZ, QVector3D(0, 0, 1));
+    modelMatrix.rotate(rotation.x(), QVector3D(1, 0, 0));
+    modelMatrix.rotate(rotation.y(), QVector3D(0, 1, 0));
+    modelMatrix.rotate(rotation.z(), QVector3D(0, 0, 1));
 
-    modelMatrix.scale(scale, scale, scale);
+    modelMatrix.scale(scale);
     modelMatrix.translate(-midPoint);
 
     GLuint locModel = 0;

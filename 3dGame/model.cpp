@@ -198,6 +198,7 @@ void Model::drawModel(float x, float y, float z, float scale, float rotX, float 
     modelMatrix.rotate(rotX, QVector3D(1, 0, 0));
     modelMatrix.rotate(rotY, QVector3D(0, 1, 0));
     modelMatrix.rotate(rotZ, QVector3D(0, 0, 1));
+
     modelMatrix.scale(scale, scale, scale);
     modelMatrix.translate(-midPoint);
 

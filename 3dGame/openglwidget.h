@@ -36,11 +36,13 @@ protected:
     void resizeGL(int width, int height);
     void paintGL();
 
-    std::shared_ptr<Model> model, enemy, bullet, worldBox;
+    std::shared_ptr<Model> model, enemy, bullet;
+    std::shared_ptr<WorldBox> worldBox;
 
     QVector3D enemyPos[NUM_MAX_ENEMIES];
     std::vector<QVector3D> bulletPos;
     QVector3D modelPos = QVector3D(0, 0, 0);
+    QVector3D worldBoxPos = QVector3D(0, -645.2f, -1016.0f);
 
     float numEnemies; // number of enemies
     float score; // Number of hits
@@ -60,6 +62,11 @@ protected:
     void keyPressEvent(QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
     void resetGame();
+
+    void mouseMoveEvent(QMouseEvent *event);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
+    void wheelEvent(QWheelEvent *event);
 };
 
 #endif // OPENGLWIDGET_H

@@ -28,7 +28,7 @@ void OpenGLWidget::initializeGL()
     model = std::make_shared<Model>(this);
     enemy = std::make_shared<Model>(this);
     bullet = std::make_shared<Model>(this);
-    worldBox = std::make_shared<Model>(this);
+    worldBox = std::make_shared<WorldBox>(this);
 
     // set enemies
     for(int i=0; i<NUM_MAX_ENEMIES; ++i)
@@ -52,7 +52,10 @@ void OpenGLWidget::initializeGL()
 
     model->readOFFFile(":/models/models/player_ship_grey.off", "phong");
     enemy->readOFFFile(":/models/models/enemy_ship.off", "phong");
-    worldBox->readOFFFile(":/models/models/cube.off", "cubemap");
+    bullet->readOFFFile(":/models/models/cube.off");
+    worldBox->readOFFFile(":/models/models/cube.off");
+
+    worldBox->loadCubeMapTexture();
 }
 
 void OpenGLWidget::paintGL()
@@ -83,17 +86,19 @@ void OpenGLWidget::paintGL()
     // load bullet
     if (!bullet)
         return;
-
     bullet->setLightAndCamera(light, camera);
-    bullet->readOFFFile(":/models/models/cube.off");
+
 
     for ( auto &pos : bulletPos ) {
         bullet->drawModel(pos.x(), pos.y(), pos.z(), 0.1);
     }
 
+    if(!worldBox)
+        return;
+    worldBox->setLightAndCamera(light, camera);
+
     // load worldBox
-    // worldBox->loadCubeMapTexture();
-    // worldBox->drawModel(0, 0, 0, 2);
+    worldBox->drawModel(worldBoxPos.x(), worldBoxPos.y(), worldBoxPos.z(), 1000);
 }
 
 void OpenGLWidget::resizeGL(int width, int height)
@@ -181,7 +186,7 @@ void OpenGLWidget::animate()
 
                 //float x = 0;
                 //float y = 0;
-                float z = -((qrand() / (float)RAND_MAX) * 100.0f);
+                float z = -((qrand() / (float)RAND_MAX) * 200.0f);
 
                 pos.setX(x);
                 pos.setY(y);
@@ -282,4 +287,39 @@ void OpenGLWidget::resetGame() {
         pos.setZ(-10);
         enemyPos[i] = pos;
     }
+}
+
+void OpenGLWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    if (!model)
+        return;
+
+    model->trackBall.mouseMove(event->localPos());
+}
+
+void OpenGLWidget::mousePressEvent(QMouseEvent *event)
+{
+    if (!model)
+        return;
+
+    if (event->button() & Qt::LeftButton)
+        model->trackBall.mousePress(event->localPos());
+}
+
+void OpenGLWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+    if (!model)
+        return;
+
+    if (event->button() & Qt::LeftButton)
+        model->trackBall.mouseRelease(event->localPos());
+}
+
+void OpenGLWidget::wheelEvent(QWheelEvent *event)
+{
+   if(!model)
+       return;
+
+   worldBoxPos.setY(worldBoxPos.y() + 0.001 * event->delta());
+   qDebug("y: %f", worldBoxPos.y());
 }

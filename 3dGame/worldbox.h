@@ -13,6 +13,8 @@
 #include <memory>
 
 #include "camera.h"
+#include "light.h"
+#include "material.h"
 
 class WorldBox : public QOpenGLExtraFunctions
 {
@@ -57,7 +59,8 @@ public:
     void loadTextureLayer(const QImage &image);
     void loadCubeMapTexture();
 
-    void drawWorldBox(float x, float y, float z, float scale = 1);
+    void drawModel(float x, float y, float z, float scale = 1);
+    void setLightAndCamera(Light light, Camera camera);
 
     QMatrix4x4 modelMatrix;
     QVector3D midPoint;
@@ -68,6 +71,8 @@ public:
     int numShaders;
 
     GLuint shaderProgram;
+
+    Material material;
 };
 
 #endif // MODEL_H

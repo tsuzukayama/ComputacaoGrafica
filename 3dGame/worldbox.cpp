@@ -6,6 +6,7 @@ WorldBox::WorldBox(QOpenGLWidget *_glWidget)
     glWidget->makeCurrent();
 
     initializeOpenGLFunctions();
+    loadCubeMapTexture();
 
     shaderIndex = 3;
     numShaders = 0;
@@ -189,7 +190,7 @@ void WorldBox::createShaders()
     fs.close();
 }
 
-void WorldBox::drawWorldBox(float x, float y, float z, float scale)
+void WorldBox::drawModel(float x, float y, float z, float scale)
 {
     modelMatrix.setToIdentity();
     modelMatrix.translate(x, y, z);
@@ -228,10 +229,8 @@ void WorldBox::drawWorldBox(float x, float y, float z, float scale)
         glBindTexture(GL_TEXTURE_2D, textureLayerID);
     }
 
-    if (textureCubeMapID)
-    {
-        glBindTexture(GL_TEXTURE_CUBE_MAP, textureCubeMapID);
-    }
+
+    glBindTexture(GL_TEXTURE_CUBE_MAP, textureCubeMapID);
 
     glDrawElements(GL_TRIANGLES, numFaces * 3, GL_UNSIGNED_INT, nullptr);
 
@@ -419,12 +418,12 @@ void WorldBox::loadCubeMapTexture()
     QImage posz = QImage(QString(folderName).append("/posz.jpg")).convertToFormat(QImage::Format_RGBA8888 );
     */
 
-    QImage negx = QImage(QString(":/textures/cube/negx.jpg")).convertToFormat(QImage::Format_RGBA8888 );
-    QImage negy = QImage(QString(":/textures/cube/negy.jpg")).convertToFormat(QImage::Format_RGBA8888 );
-    QImage negz = QImage(QString(":/textures/cube/negz.jpg")).convertToFormat(QImage::Format_RGBA8888 );
-    QImage posx = QImage(QString(":/textures/cube/posx.jpg")).convertToFormat(QImage::Format_RGBA8888 );
-    QImage posy = QImage(QString(":/textures/cube/posy.jpg")).convertToFormat(QImage::Format_RGBA8888 );
-    QImage posz = QImage(QString(":/textures/cube/posz.jpg")).convertToFormat(QImage::Format_RGBA8888 );
+    QImage negx = QImage(QString(":/textures/textures/space.jpg")).convertToFormat(QImage::Format_RGBA8888 );
+    QImage negy = QImage(QString(":/textures/textures/space.jpg")).convertToFormat(QImage::Format_RGBA8888 );
+    QImage negz = QImage(QString(":/textures/textures/space.jpg")).convertToFormat(QImage::Format_RGBA8888 );
+    QImage posx = QImage(QString(":/textures/textures/space.jpg")).convertToFormat(QImage::Format_RGBA8888 );
+    QImage posy = QImage(QString(":/textures/textures/space.jpg")).convertToFormat(QImage::Format_RGBA8888 );
+    QImage posz = QImage(QString(":/textures/textures/space.jpg")).convertToFormat(QImage::Format_RGBA8888 );
 
 
     negx = negx.convertToFormat(QImage::Format_RGBA8888);
@@ -433,11 +432,6 @@ void WorldBox::loadCubeMapTexture()
     posx = posx.convertToFormat(QImage::Format_RGBA8888);
     posy = posy.convertToFormat(QImage::Format_RGBA8888);
     posz = posz.convertToFormat(QImage::Format_RGBA8888);
-
-    if (textureCubeMapID)
-    {
-        glDeleteTextures(1, &textureCubeMapID);
-    }
 
     glGenTextures(1, &textureCubeMapID);
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureCubeMapID);
@@ -455,5 +449,31 @@ void WorldBox::loadCubeMapTexture()
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+}
+
+void WorldBox::setLightAndCamera(Light light, Camera camera) {
+    GLuint shaderProgramID = shaderProgram;
+
+    QVector4D ambientProduct = light.ambient * material.ambient;
+    QVector4D diffuseProduct = light.diffuse * material.diffuse;
+    QVector4D specularProduct = light.specular * material.specular;
+
+    GLint locProjection = glGetUniformLocation(shaderProgramID, "projection");
+    GLint locView = glGetUniformLocation(shaderProgramID, "view");
+    GLint locLightPosition = glGetUniformLocation(shaderProgramID, "lightPosition");
+    GLint locAmbientProduct = glGetUniformLocation(shaderProgramID, "ambientProduct");
+    GLint locDiffuseProduct = glGetUniformLocation(shaderProgramID, "diffuseProduct");
+    GLint locSpecularProduct = glGetUniformLocation(shaderProgramID, "specularProduct");
+    GLint locShininess = glGetUniformLocation(shaderProgramID, "shininess");
+
+    glUseProgram(shaderProgramID);
+
+    glUniformMatrix4fv(locProjection, 1, GL_FALSE, camera.projectionMatrix.data());
+    glUniformMatrix4fv(locView, 1, GL_FALSE, camera.viewMatrix.data());
+    glUniform4fv(locLightPosition, 1, &(light.position[0]));
+    glUniform4fv(locAmbientProduct, 1, &(ambientProduct[0]));
+    glUniform4fv(locDiffuseProduct, 1, &(diffuseProduct[0]));
+    glUniform4fv(locSpecularProduct, 1, &(specularProduct[0]));
+    glUniform1f(locShininess, material.shininess);
 }
 

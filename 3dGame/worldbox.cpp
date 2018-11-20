@@ -233,12 +233,6 @@ void WorldBox::drawModel(float x, float y, float z, float scale)
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureCubeMapID);
 
     glDrawElements(GL_TRIANGLES, numFaces * 3, GL_UNSIGNED_INT, nullptr);
-
-    /* readOFFFile(":/models/models/m1119.off");
-    QImage image;
-    image.load(":/textures/textures/wheat.png");
-    image = image.convertToFormat(QImage::Format_RGBA8888);
-    loadTextureLayer(image);*/
 }
 
 void WorldBox::readOFFFile(QString const &fileName)

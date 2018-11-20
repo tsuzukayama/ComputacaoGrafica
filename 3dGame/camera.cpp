@@ -16,7 +16,7 @@ void Camera::resizeViewport(int width, int height)
 {
     projectionMatrix.setToIdentity();
     float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
-    projectionMatrix.perspective(60.0f, aspectRatio, 0.1f, 20.0f);
+    projectionMatrix.perspective(60.0f, aspectRatio, 0.1f, 300.0f);
     this->height = height;
     this->width  = width;
 }

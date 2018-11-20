@@ -13,7 +13,7 @@ OpenGLWidget::OpenGLWidget(QWidget * parent) : QOpenGLWidget(parent)
     bulletSpeed = 25;
 
     isPlayerDead = false;
-    playerSpeed = 2;
+    playerSpeed = 5;
     modelXState = XIdle;
     modelYState = YIdle;
 }
@@ -21,6 +21,7 @@ OpenGLWidget::OpenGLWidget(QWidget * parent) : QOpenGLWidget(parent)
 void OpenGLWidget::initializeGL()
 {
     initializeOpenGLFunctions();
+    glClearColor(0, 0, 0, 1);
 
     qDebug("OpenGL version: %s", glGetString(GL_VERSION));
     qDebug("GLSL %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
@@ -35,7 +36,10 @@ void OpenGLWidget::initializeGL()
     model = std::make_shared<Model>(this);
     enemy = std::make_shared<Model>(this);
     bullet = std::make_shared<Model>(this);
+    sun = std::make_shared<Model>(this);
+
     worldBox = std::make_shared<WorldBox>(this);
+
 
     // set enemies
     for(int i=0; i<NUM_MAX_ENEMIES; ++i)
@@ -61,16 +65,16 @@ void OpenGLWidget::initializeGL()
     model->readOFFFile(":/models/models/player_ship_grey.off", "phong");
     enemy->readOFFFile(":/models/models/enemy_ship.off", "phong");
     bullet->readOFFFile(":/models/models/cube.off", "phong");
+    sun->readOFFFile(":/models/models/sphere2.off", "texture");
+
     worldBox->readOFFFile(":/models/models/cube.off");
 
-    worldBox->loadCubeMapTexture();
 }
 
 void OpenGLWidget::paintGL()
 {
-    glViewport(0, 0, width(), height());
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    // glClearColor(1, 1, 1, 1);
+    emit changeScore(QString("Score: %1").arg(QString::number(static_cast<int>(std::floor(score)))));
+    emit changeMaxScore(QString("Max score: %1").arg(QString::number(static_cast<int>(std::floor(maxScore)))));
 
     // load player
     if (!model)
@@ -101,16 +105,32 @@ void OpenGLWidget::paintGL()
         bullet->drawModel(pos.x(), pos.y(), pos.z(), QVector3D(0.02f, 0.02f, 0.5f));
     }
 
+    if(!sun)
+        return;
+
+    sun->setLightAndCamera(light, camera);
+    // load worldBox
+    sun->drawModel(15, 15, -100, QVector3D(30, 30, 30));
+
+    QImage sunTex;
+    sunTex.load(QString(":/textures/textures/sun.jpg"));
+    sunTex = sunTex.convertToFormat(QImage::Format_RGBA8888);
+    sun->loadTexture(sunTex);
+
     if(!worldBox)
         return;
+
     worldBox->setLightAndCamera(light, camera);
 
     // load worldBox
     worldBox->drawModel(worldBoxPos.x(), worldBoxPos.y(), worldBoxPos.z(), 1000);
+
+
 }
 
 void OpenGLWidget::resizeGL(int width, int height)
 {
+    glViewport(0, 0, width, height);
     camera.resizeViewport(width, height);
 
     if (model) model->trackBall.resizeViewport(width, height);
@@ -129,48 +149,48 @@ void OpenGLWidget::animate()
         float yBorder = 0.8f;
 
         // move player
-        if (modelPos.x() < -xBorder) {
+//        if (modelPos.x() < -xBorder) {
 
-            modelPos.setX(-xBorder);
+//            modelPos.setX(-xBorder);
 
-            camera.eye.setX(-xBorder);
-            camera.center.setX(-xBorder);
-            camera.computeViewMatrix();
-        } else if (modelPos.x() > xBorder){
+//            camera.eye.setX(-xBorder);
+//            camera.center.setX(-xBorder);
+//            camera.computeViewMatrix();
+//        } else if (modelPos.x() > xBorder){
 
-            modelPos.setX(xBorder);
+//            modelPos.setX(xBorder);
 
-            camera.eye.setX(xBorder);
-            camera.center.setX(xBorder);
-            camera.computeViewMatrix();
-        } else {
+//            camera.eye.setX(xBorder);
+//            camera.center.setX(xBorder);
+//            camera.computeViewMatrix();
+//        } else {
 
             modelPos.setX(modelPos.x() + (playerPosXOffsetLeft + playerPosXOffsetRight) * elapsedTime);
 
             camera.eye.setX(camera.eye.x() + (playerPosXOffsetLeft + playerPosXOffsetRight) * elapsedTime);
             camera.center.setX(camera.center.x() + (playerPosXOffsetLeft + playerPosXOffsetRight) * elapsedTime);
             camera.computeViewMatrix();
-        }
+//        }
 
-        if (modelPos.y() < -yBorder) {
-            modelPos.setY(-yBorder);
+//        if (modelPos.y() < -yBorder) {
+//            modelPos.setY(-yBorder);
 
-            camera.eye.setY(-yBorder + 0.2f);
-            camera.center.setY(-yBorder);
-            camera.computeViewMatrix();
-        } else if (modelPos.y() > yBorder){
-            modelPos.setY(yBorder);
+//            camera.eye.setY(-yBorder + 0.2f);
+//            camera.center.setY(-yBorder);
+//            camera.computeViewMatrix();
+//        } else if (modelPos.y() > yBorder){
+//            modelPos.setY(yBorder);
 
-            camera.eye.setY(yBorder + 0.2f);
-            camera.center.setY(yBorder);
-            camera.computeViewMatrix();
-        } else {
+//            camera.eye.setY(yBorder + 0.2f);
+//            camera.center.setY(yBorder);
+//            camera.computeViewMatrix();
+//        } else {
             modelPos.setY(modelPos.y() + (playerPosYOffsetUp + playerPosYOffsetDown) * elapsedTime);
 
             camera.eye.setY(camera.eye.y() + (playerPosYOffsetUp + playerPosYOffsetDown) * elapsedTime);
             camera.center.setY(camera.center.y() + (playerPosYOffsetUp + playerPosYOffsetDown) * elapsedTime);
             camera.computeViewMatrix();
-        }
+//        }
 
         // rotate player X
 
@@ -220,6 +240,11 @@ void OpenGLWidget::animate()
         }
 
         // update enemies
+        float xMax = modelPos.x() + 1;
+        float xMin = modelPos.x() - 1;
+
+        float yMax = modelPos.y() + 1;
+        float yMin = modelPos.y() - 1;
         for(int i = 0; i < floor(numEnemies); ++i) {
 
             // check collision with player
@@ -242,19 +267,18 @@ void OpenGLWidget::animate()
                     bullet.z() < enemyPos[i].z() + (0.0f + 0.35f))
                 {
                     QVector3D pos = enemyPos[i];
-                    float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
-                    float radius = 1 + (qrand() / (float)RAND_MAX) * 2;
-                    float x = rand()%(2-(-2) + 1) + (-2);
-                    float y = rand()%(2-(-2) + 1) + (-2);
 
-                    float z = -((qrand() / (float)RAND_MAX) * 100.0f);
+                    float x = randomFloat(xMin, xMax);
+                    float y = randomFloat(yMin, yMax);
+                    float z = -((qrand() / (float)RAND_MAX) * 200.0f);
 
                     pos.setX(x);
                     pos.setY(y);
                     pos.setZ(z);
-                    enemyPos[i] = pos;
 
-                    bullet.setZ(-100);
+                    bullet.setZ(-1100);
+
+                    enemyPos[i] = pos;
 
                     score += 10;
                 }
@@ -263,18 +287,9 @@ void OpenGLWidget::animate()
             // check if reached end of screen
             if(enemyPos[i].z() >= 1.0f){
                 QVector3D pos = enemyPos[i];
-                float ang = (qrand() / (float)RAND_MAX) * 2 * 3.14159265f;
-                float radius = 1 + (qrand() / (float)RAND_MAX) * 2;
-                //float x = rand()%(2-(-2) + 1) + (-2);
-                //float y = rand()%(2-(-2) + 1) + (-2);
-                float max = 1;
-                float min = -1;
 
-                float x = RandomFloat(min, max);
-                float y = RandomFloat(min, max);
-
-                //float x = 0;
-                //float y = 0;
+                float x = randomFloat(xMin, xMax);
+                float y = randomFloat(yMin, yMax);
                 float z = -((qrand() / (float)RAND_MAX) * 200.0f);
 
                 pos.setX(x);
@@ -334,7 +349,7 @@ void OpenGLWidget::keyPressEvent(QKeyEvent *event)
 
     if (event->key() == Qt::Key_Space)
     {
-        if (bulletTime.elapsed() > 500)
+        if (bulletTime.elapsed() > 100)
         {
             QVector3D pos = modelPos;
             pos.setZ(-0.5f);
@@ -390,6 +405,10 @@ void OpenGLWidget::resetGame() {
     numEnemies = 10;
     isPlayerDead = false;
 
+    modelRotation = QVector3D(90, 0, 90);
+    modelXState = XIdle;
+    modelYState = YIdle;
+
     for(int i=0; i<NUM_MAX_ENEMIES; ++i)
     {
         QVector3D pos = enemyPos[i];
@@ -438,11 +457,11 @@ void OpenGLWidget::wheelEvent(QWheelEvent *event)
    if(!model)
        return;
 
-   worldBoxPos.setY(worldBoxPos.y() + 0.001 * event->delta());
-   qDebug("y: %f", worldBoxPos.y());
+   worldBoxPos.setZ(worldBoxPos.z() + 0.001 * event->delta());
+   qDebug("y: %f", worldBoxPos.z());
 }
 
-float OpenGLWidget::RandomFloat(float min, float max)
+float OpenGLWidget::randomFloat(float min, float max)
 {
     // this  function assumes max > min, you may want
     // more robust error checking for a non-debug build

@@ -34,8 +34,7 @@ void main()
     {
         frag_color = vec4(Phong(fN).xyz, 1);
     }
-    /*else
-    {
+    /**else {
         frag_color = mix(vec4(Phong(-fN).xyz, 1), vec4(0.0, 2.0, 0.0, 1.0), 0.7);
-    }*/
+    }**/
 }

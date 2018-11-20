@@ -28,6 +28,24 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QLabel" name="lblScore">
+        <property name="text">
+         <string>Score:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="lblMaxScore">
+        <property name="text">
+         <string>Max Score:</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
      <widget class="OpenGLWidget" name="openGLWidget">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
@@ -44,30 +62,6 @@
      </widget>
     </item>
    </layout>
-  </widget>
-  <widget class="QMenuBar" name="menuBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>1280</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menuFile">
-    <property name="title">
-     <string>&amp;File</string>
-    </property>
-    <addaction name="separator"/>
-    <addaction name="actionE_xit"/>
-   </widget>
-   <widget class="QMenu" name="menuTExture">
-    <property name="title">
-     <string>&amp;Texture</string>
-    </property>
-   </widget>
-   <addaction name="menuFile"/>
-   <addaction name="menuTExture"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionE_xit">
@@ -88,6 +82,8 @@
    <slots>
     <signal>statusBarMessage(QString)</signal>
     <signal>enableComboShaders(bool)</signal>
+    <signal>changeScore(QString)</signal>
+    <signal>changeMaxScore(QString)</signal>
     <slot>showFileOpenDialog()</slot>
     <slot>changeShader(int)</slot>
     <slot>loadTexture()</slot>
@@ -127,6 +123,38 @@
     <hint type="destinationlabel">
      <x>299</x>
      <y>201</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>openGLWidget</sender>
+   <signal>changeScore(QString)</signal>
+   <receiver>lblScore</receiver>
+   <slot>setText(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>639</x>
+     <y>349</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>639</x>
+     <y>15</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>openGLWidget</sender>
+   <signal>changeMaxScore(QString)</signal>
+   <receiver>lblMaxScore</receiver>
+   <slot>setText(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>639</x>
+     <y>360</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>956</x>
+     <y>16</y>
     </hint>
    </hints>
   </connection>

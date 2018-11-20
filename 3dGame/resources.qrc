@@ -9,6 +9,7 @@
         <file>textures/player_tex.jpeg</file>
         <file>textures/wheat.png</file>
         <file>textures/space.jpg</file>
+        <file>textures/sun.jpg</file>
     </qresource>
     <qresource prefix="/shaders">
         <file>shaders/fcubemap.glsl</file>
@@ -40,5 +41,6 @@
         <file>models/player_ship.off</file>
         <file>models/player_ship_glass.off</file>
         <file>models/player_ship_grey.off</file>
+        <file>models/sphere2.off</file>
     </qresource>
 </RCC>

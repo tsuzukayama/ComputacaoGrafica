@@ -11,7 +11,7 @@
 #include "camera.h"
 #include "worldbox.h"
 
-#define NUM_MAX_ENEMIES 1000
+#define NUM_MAX_ENEMIES 10000
 #define NUM_MAX_BULLETS 10
 
 class OpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
@@ -27,6 +27,8 @@ public:
 signals:
     void statusBarMessage(QString);
     void enableComboShaders(bool);
+    void changeScore(QString);
+    void changeMaxScore(QString);
 
 public slots:
     void animate();
@@ -36,7 +38,7 @@ protected:
     void resizeGL(int width, int height);
     void paintGL();
 
-    std::shared_ptr<Model> model, enemy, bullet;
+    std::shared_ptr<Model> model, enemy, bullet, sun;
     std::shared_ptr<WorldBox> worldBox;
 
 
@@ -53,7 +55,7 @@ protected:
 
     std::vector<QVector3D> bulletPos;
 
-    QVector3D worldBoxPos = QVector3D(0, -645.2f, -1016.0f);
+    QVector3D worldBoxPos = QVector3D(0, -645.2f, -1270.0f);
 
 
 
@@ -76,7 +78,7 @@ protected:
     void keyPressEvent(QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
     void resetGame();
-    float RandomFloat(float min, float max);
+    float randomFloat(float min, float max);
 
     void mouseMoveEvent(QMouseEvent *event);
     void mousePressEvent(QMouseEvent *event);

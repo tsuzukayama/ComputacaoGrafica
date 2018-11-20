@@ -8,9 +8,9 @@ class Light
 public :
     Light();
 
-    QVector4D position = QVector4D (15, 15, 15, 0);
+    QVector4D position = QVector4D (15, 15, -50, 0);
     QVector4D ambient  = QVector4D (1, 1, 1, 1);
-    QVector4D diffuse  = QVector4D (1, 1, 1, 1);
+    QVector4D diffuse  = QVector4D (15, 15, 15, 15);
     QVector4D specular = QVector4D (1, 1, 1, 1);
 };
 

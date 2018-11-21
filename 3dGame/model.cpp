@@ -89,31 +89,38 @@ void Model::destroyShaders ()
     glDeleteProgram(shaderProgram);
 }
 
+
 void Model::createShaders(QString shaderName)
 {
     destroyShaders();
 
     QString vShaderPath = QString(":/shaders/shaders/v%1.glsl").arg(shaderName);
     QString fShaderPath = QString(":/shaders/shaders/f%1.glsl").arg(shaderName);
+    QString gShaderPath = QString(":/shaders/shaders/g%1.glsl").arg(shaderName);
+
     QFile vs(vShaderPath);
     QFile fs(fShaderPath);
+    QFile gs(gShaderPath);
 
     vs.open(QFile::ReadOnly | QFile::Text);
     fs.open(QFile::ReadOnly | QFile::Text);
+    gs.open(QFile::ReadOnly | QFile::Text);
 
-    QTextStream streamVs(&vs), streamFs(&fs);
+    QTextStream streamVs(&vs), streamFs(&fs), streamGs(&gs);
 
     QString qtStringVs = streamVs.readAll();
     QString qtStringFs = streamFs.readAll();
+    QString qtStringGs = streamGs.readAll();
 
     std::string stdStringVs = qtStringVs.toStdString();
     std::string stdStringFs = qtStringFs.toStdString();
+    std::string stdStringGs = qtStringGs.toStdString();
+
     GLuint vertexShader = 0;
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
 
     // Send the vertex shader source code to GL
     const GLchar *source = stdStringVs.c_str();
-
     glShaderSource(vertexShader, 1, &source, nullptr);
 
     // Compile the vertex shader
@@ -133,6 +140,9 @@ void Model::createShaders(QString shaderName)
         glDeleteShader(vertexShader);
         return;
     }
+
+    // fragment shader
+
     GLuint fragmentShader = 0;
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 
@@ -158,11 +168,40 @@ void Model::createShaders(QString shaderName)
         return;
     }
 
+    // geometry shader
+
+    GLuint geometryShader = 0;
+    geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+
+    // Send the fragment shader source code to GL
+    source = stdStringGs.c_str();
+    glShaderSource(geometryShader, 1, &source, nullptr);
+
+    // Compile the fragment shader
+    glCompileShader(geometryShader);
+
+    glGetShaderiv(geometryShader, GL_COMPILE_STATUS, &isCompiled);
+    if (isCompiled == GL_FALSE)
+    {
+        GLint maxLength = 0;
+        glGetShaderiv(geometryShader, GL_INFO_LOG_LENGTH, &maxLength);
+
+        std::vector<GLchar> infoLog(maxLength);
+        glGetShaderInfoLog(geometryShader, maxLength, &maxLength, &infoLog[0]);
+        qDebug("%s", &infoLog[0]);
+
+        glDeleteShader(fragmentShader);
+        glDeleteShader(vertexShader);
+        glDeleteShader(geometryShader);
+        return;
+    }
+
     shaderProgram = glCreateProgram();
 
     // Attach our shaders to our program
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
+    glAttachShader(shaderProgram, geometryShader);
 
     // Link our program
     glLinkProgram(shaderProgram);
@@ -183,16 +222,20 @@ void Model::createShaders(QString shaderName)
         glDeleteProgram(shaderProgram);
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
+        glDeleteShader(geometryShader);
         return;
     }
     glDetachShader(shaderProgram, vertexShader);
     glDetachShader(shaderProgram, fragmentShader);
+    glDetachShader(shaderProgram, geometryShader);
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
+    glDeleteShader(geometryShader);
 
     vs.close();
     fs.close();
+    gs.close();
 }
 
 void Model::drawModel(float x, float y, float z, QVector3D scale, QVector3D rotation)

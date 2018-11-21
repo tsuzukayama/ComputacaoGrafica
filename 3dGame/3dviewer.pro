@@ -34,7 +34,12 @@ HEADERS  += mainwindow.h \
 
 FORMS    += mainwindow.ui
 
-DISTFILES +=
+DISTFILES += \
+    shaders/gphong.glsl \
+    shaders/gtexture.glsl \
+    shaders/vtoon2.glsl \
+    shaders/ftoon2.glsl \
+    shaders/gtoon2.glsl
 
 RESOURCES += \
     resources.qrc \

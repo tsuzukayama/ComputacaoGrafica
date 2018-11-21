@@ -7,7 +7,7 @@ OpenGLWidget::OpenGLWidget(QWidget * parent) : QOpenGLWidget(parent)
     score = 0;
     maxScore = 0;
 
-    speed = 5;
+    speed = 3;
 
     shooting = false;    
     bulletSpeed = 25;
@@ -62,7 +62,7 @@ void OpenGLWidget::initializeGL()
     model->material.ambient = QVector4D(0.02f, 0.02f, 1.0f, 1.0f);
     bullet->material.ambient = QVector4D(0.02f, 1.0f, 0.02f, 1.0f);
 
-    model->readOFFFile(":/models/models/player_ship_grey.off", "phong");
+    model->readOFFFile(":/models/models/player_ship_grey.off", "toon2");
     enemy->readOFFFile(":/models/models/enemy_ship.off", "phong");
     bullet->readOFFFile(":/models/models/cube.off", "phong");
     sun->readOFFFile(":/models/models/sphere2.off", "texture");
@@ -259,8 +259,8 @@ void OpenGLWidget::animate()
             }
             // check collision with bullet
             for ( auto &bullet : bulletPos ) {
-                if (bullet.y() > enemyPos[i].y() - (0.0f + 0.15f) &&
-                    bullet.y() < enemyPos[i].y() + (0.0f + 0.15f) &&
+                if (bullet.y() > enemyPos[i].y() - (0.0f + 0.35f) &&
+                    bullet.y() < enemyPos[i].y() + (0.0f + 0.35f) &&
                     bullet.x() > enemyPos[i].x() - (0.0f + 0.35f) &&
                     bullet.x() < enemyPos[i].x() + (0.0f + 0.35f) &&
                     bullet.z() > enemyPos[i].z() - (0.0f + 0.35f) &&
@@ -270,6 +270,7 @@ void OpenGLWidget::animate()
 
                     float x = randomFloat(xMin, xMax);
                     float y = randomFloat(yMin, yMax);
+
                     float z = -((qrand() / (float)RAND_MAX) * 200.0f);
 
                     pos.setX(x);
@@ -290,6 +291,10 @@ void OpenGLWidget::animate()
 
                 float x = randomFloat(xMin, xMax);
                 float y = randomFloat(yMin, yMax);
+
+                // float x = 0;
+                // float y = 0;
+
                 float z = -((qrand() / (float)RAND_MAX) * 200.0f);
 
                 pos.setX(x);

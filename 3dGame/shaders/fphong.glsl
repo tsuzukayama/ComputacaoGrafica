@@ -1,8 +1,10 @@
-#version 410
+#version 400
 
-in vec3 fN;
-in vec3 fE;
-in vec3 fL;
+in fData {
+    vec3 fN;
+    vec3 fE;
+    vec3 fL;
+}frag;
 
 uniform vec4 ambientProduct;
 uniform vec4 diffuseProduct;
@@ -14,8 +16,8 @@ out vec4 frag_color;
 vec4 Phong(vec3 n)
 {
     vec3 N = normalize(n);
-    vec3 E = normalize(fE);
-    vec3 L = normalize(fL);
+    vec3 E = normalize(frag.fE);
+    vec3 L = normalize(frag.fL);
     float NdotL = dot(N, L);
     vec3 R = normalize(2.0 * NdotL * N - L);
     float Kd = max(NdotL, 0.0);
@@ -28,6 +30,6 @@ vec4 Phong(vec3 n)
 
 void main()
 {
-    frag_color = Phong(fN);
+    frag_color = Phong(frag.fN);
     frag_color.a = 1.0;
 }

@@ -1,4 +1,4 @@
-#version 410
+#version 400
 
 layout (location = 0) in vec4 vPosition;
 layout (location = 1) in vec3 vNormal;
@@ -10,15 +10,17 @@ uniform mat4 projection;
 uniform mat3 normalMatrix;
 uniform vec4 lightPosition;
 
-out vec3 fN;
-out vec3 fE;
-out vec3 fL;
+out vData {
+    vec3 fN;
+    vec3 fE;
+    vec3 fL;
+}vertex;
 
 void main()
 {
     vec4 eyePosition = view * model * vPosition;
-    fN = mat3(view) * normalMatrix * vNormal;
-    fL = lightPosition.xyz - eyePosition.xyz;
-    fE = -eyePosition.xyz;
+    vertex.fN = mat3(view) * normalMatrix * vNormal;
+    vertex.fL = lightPosition.xyz - eyePosition.xyz;
+    vertex.fE = -eyePosition.xyz;
     gl_Position = projection * eyePosition;
 }

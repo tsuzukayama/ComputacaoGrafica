@@ -32,6 +32,11 @@
         <file>shaders/vtexture.glsl</file>
         <file>shaders/ftoon.glsl</file>
         <file>shaders/vtoon.glsl</file>
+        <file>shaders/gphong.glsl</file>
+        <file>shaders/gtexture.glsl</file>
+        <file>shaders/gtoon2.glsl</file>
+        <file>shaders/ftoon2.glsl</file>
+        <file>shaders/vtoon2.glsl</file>
     </qresource>
     <qresource prefix="/models">
         <file>models/cube.off</file>

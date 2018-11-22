@@ -238,7 +238,7 @@ void Model::createShaders(QString shaderName)
     gs.close();
 }
 
-void Model::drawModel(float x, float y, float z, QVector3D scale, QVector3D rotation)
+void Model::drawModel(float x, float y, float z, QVector3D scale, QVector3D rotation, boolean isToon)
 {
     modelMatrix.setToIdentity();
     modelMatrix.translate(x, y, z);
@@ -287,7 +287,10 @@ void Model::drawModel(float x, float y, float z, QVector3D scale, QVector3D rota
         glBindTexture(GL_TEXTURE_CUBE_MAP, textureCubeMapID);
     }
 
-    glDrawElements(GL_TRIANGLES, numFaces * 3, GL_UNSIGNED_INT, nullptr);
+    if(isToon)
+        glDrawElements(GL_TRIANGLES_ADJACENCY, numFaces * 3, GL_UNSIGNED_INT, nullptr);
+    else
+        glDrawElements(GL_TRIANGLES, numFaces * 3, GL_UNSIGNED_INT, nullptr);
 
 }
 
@@ -556,7 +559,11 @@ void Model::setLightAndCamera(Light light, Camera camera) {
     GLint locAmbientProduct = glGetUniformLocation(shaderProgramID, "ambientProduct");
     GLint locDiffuseProduct = glGetUniformLocation(shaderProgramID, "diffuseProduct");
     GLint locSpecularProduct = glGetUniformLocation(shaderProgramID, "specularProduct");
+
     GLint locShininess = glGetUniformLocation(shaderProgramID, "shininess");
+    GLint locMaterialKd = glGetUniformLocation(shaderProgramID, "materialKd");
+    GLint locMaterialKa = glGetUniformLocation(shaderProgramID, "materialKa");
+    GLint locLightIntensity = glGetUniformLocation(shaderProgramID, "lightIntensity");
 
     glUseProgram(shaderProgramID);
 
@@ -566,5 +573,10 @@ void Model::setLightAndCamera(Light light, Camera camera) {
     glUniform4fv(locAmbientProduct, 1, &(ambientProduct[0]));
     glUniform4fv(locDiffuseProduct, 1, &(diffuseProduct[0]));
     glUniform4fv(locSpecularProduct, 1, &(specularProduct[0]));
+
+    glUniform3fv(locMaterialKd, 1, &(material.diffuse[0]));
+    glUniform3fv(locMaterialKa, 1, &(material.ambient[0]));
+    glUniform3fv(locLightIntensity, 1, &(QVector3D(1, 1, 1)[0]));
+
     glUniform1f(locShininess, material.shininess);
 }

@@ -10,6 +10,8 @@
         <file>textures/wheat.png</file>
         <file>textures/space.jpg</file>
         <file>textures/sun.jpg</file>
+        <file>textures/space_light.jpg</file>
+        <file>textures/space_light1.jpg</file>
     </qresource>
     <qresource prefix="/shaders">
         <file>shaders/fcubemap.glsl</file>

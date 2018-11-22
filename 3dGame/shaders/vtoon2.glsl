@@ -1,25 +1,38 @@
 #version 410
 
-layout (location = 0 ) in vec4 vPosition;
-layout (location = 1 ) in vec3 vNormal;
+layout (location = 0 ) in vec3 VertexPosition;
+layout (location = 1 ) in vec3 VertexNormal;
 
-out vec3 vN;
-out vec3 vL;
+out vec3 VNormal;
+out vec3 VPosition;
 
-uniform mat4 view;
+out vData {
+    vec3 fN;
+    vec3 fE;
+    vec3 fL;
+}vertex;
+
 uniform mat4 projection;
+uniform mat4 view;
+uniform vec4 lightPosition;
+
 uniform mat4 model;
 
 uniform mat3 normalMatrix;
-uniform vec4 lightPosition;
 
 // MVP = model view projection
 void main()
 {
-    mat4 ModelViewMatrix = model * view;
-    mat4 MVP = model * view * projection;
+    mat4 ModelViewMatrix = view * model;
+    mat4 MVP = projection * ModelViewMatrix;
 
-    vN = normalize( normalMatrix * vNormal);
-    vL = vec3(ModelViewMatrix * vPosition);
-    gl_Position = MVP * vPosition;
+    VNormal = normalize( normalMatrix * VertexNormal);
+    VPosition = vec3(ModelViewMatrix * vec4(VertexPosition, 1.0));
+
+    vec4 eyePosition = view * model * vec4(VertexPosition, 1.0);
+    vertex.fN = mat3(view) * normalMatrix * VertexNormal;
+    vertex.fL = lightPosition.xyz - eyePosition.xyz;
+    vertex.fE = -eyePosition.xyz;
+
+    gl_Position = MVP * vec4(VertexPosition, 1.0);
 }

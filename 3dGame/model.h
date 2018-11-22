@@ -61,7 +61,7 @@ public:
     void loadCubeMapTexture();
 
     void setLightAndCamera(Light light, Camera camera);
-    void drawModel(float x, float y, float z, QVector3D scale = QVector3D(1, 1, 1), QVector3D rotation = QVector3D(0, 0, 0));
+    void drawModel(float x, float y, float z, QVector3D scale = QVector3D(1, 1, 1), QVector3D rotation = QVector3D(0, 0, 0), boolean isToon = true);
 
     QMatrix4x4 modelMatrix;
     QVector3D midPoint;

@@ -412,12 +412,12 @@ void WorldBox::loadCubeMapTexture()
     QImage posz = QImage(QString(folderName).append("/posz.jpg")).convertToFormat(QImage::Format_RGBA8888 );
     */
 
-    QImage negx = QImage(QString(":/textures/textures/space.jpg")).convertToFormat(QImage::Format_RGBA8888 );
-    QImage negy = QImage(QString(":/textures/textures/space.jpg")).convertToFormat(QImage::Format_RGBA8888 );
-    QImage negz = QImage(QString(":/textures/textures/space.jpg")).convertToFormat(QImage::Format_RGBA8888 );
-    QImage posx = QImage(QString(":/textures/textures/space.jpg")).convertToFormat(QImage::Format_RGBA8888 );
-    QImage posy = QImage(QString(":/textures/textures/space.jpg")).convertToFormat(QImage::Format_RGBA8888 );
-    QImage posz = QImage(QString(":/textures/textures/space.jpg")).convertToFormat(QImage::Format_RGBA8888 );
+    QImage negx = QImage(QString(":/textures/textures/space_light1.jpg")).convertToFormat(QImage::Format_RGBA8888 );
+    QImage negy = QImage(QString(":/textures/textures/space_light1.jpg")).convertToFormat(QImage::Format_RGBA8888 );
+    QImage negz = QImage(QString(":/textures/textures/space_light1.jpg")).convertToFormat(QImage::Format_RGBA8888 );
+    QImage posx = QImage(QString(":/textures/textures/space_light1.jpg")).convertToFormat(QImage::Format_RGBA8888 );
+    QImage posy = QImage(QString(":/textures/textures/space_light1.jpg")).convertToFormat(QImage::Format_RGBA8888 );
+    QImage posz = QImage(QString(":/textures/textures/space_light1.jpg")).convertToFormat(QImage::Format_RGBA8888 );
 
 
     negx = negx.convertToFormat(QImage::Format_RGBA8888);

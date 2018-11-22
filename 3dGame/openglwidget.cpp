@@ -63,8 +63,8 @@ void OpenGLWidget::initializeGL()
     bullet->material.ambient = QVector4D(0.02f, 1.0f, 0.02f, 1.0f);
 
     model->readOFFFile(":/models/models/player_ship_grey.off", "toon2");
-    enemy->readOFFFile(":/models/models/enemy_ship.off", "phong");
-    bullet->readOFFFile(":/models/models/cube.off", "phong");
+    enemy->readOFFFile(":/models/models/enemy_ship.off", "toon2");
+    bullet->readOFFFile(":/models/models/cube.off", "toon2");
     sun->readOFFFile(":/models/models/sphere2.off", "texture");
 
     worldBox->readOFFFile(":/models/models/cube.off");
@@ -110,7 +110,7 @@ void OpenGLWidget::paintGL()
 
     sun->setLightAndCamera(light, camera);
     // load worldBox
-    sun->drawModel(15, 15, -100, QVector3D(30, 30, 30));
+    sun->drawModel(15, 15, -100, QVector3D(30, 30, 30), QVector3D(0, 0, 0), false);
 
     QImage sunTex;
     sunTex.load(QString(":/textures/textures/sun.jpg"));

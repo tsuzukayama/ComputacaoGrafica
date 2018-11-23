@@ -50,4 +50,12 @@
         <file>models/player_ship_grey.off</file>
         <file>models/sphere2.off</file>
     </qresource>
+    <qresource prefix="/world">
+        <file>world/negx.png</file>
+        <file>world/negy.png</file>
+        <file>world/negz.png</file>
+        <file>world/posx.png</file>
+        <file>world/posy.png</file>
+        <file>world/posz.png</file>
+    </qresource>
 </RCC>

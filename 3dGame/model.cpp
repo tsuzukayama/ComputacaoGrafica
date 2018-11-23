@@ -247,6 +247,7 @@ void Model::drawModel(float x, float y, float z, QVector3D scale, QVector3D rota
     modelMatrix.rotate(rotation.z(), QVector3D(0, 0, 1));
 
     modelMatrix.scale(scale);
+
     modelMatrix.translate(-midPoint);
 
     GLuint locModel = 0;

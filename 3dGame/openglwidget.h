@@ -38,7 +38,7 @@ protected:
     void resizeGL(int width, int height);
     void paintGL();
 
-    std::shared_ptr<Model> model, enemy, bullet, sun;
+    std::shared_ptr<Model> model, enemy, bullet, sun, aim;
     std::shared_ptr<WorldBox> worldBox;
 
 
@@ -55,8 +55,9 @@ protected:
 
     std::vector<QVector3D> bulletPos;
 
-    QVector3D worldBoxPos = QVector3D(0, -645.2f, -1270.0f);
-
+    // QVector3D worldBoxPos = QVector3D(0, -645.2f, -1270.0f);
+    QVector3D worldBoxPos = QVector3D(0, 0, 0);
+    QVector3D worldBoxRotation = QVector3D(0, 0, 0);
 
 
     float numEnemies; // number of enemies

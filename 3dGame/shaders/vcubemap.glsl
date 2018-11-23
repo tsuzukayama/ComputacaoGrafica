@@ -14,11 +14,8 @@ uniform mat3 normalMatrix;
 void main()
 {
     // https://learnopengl.com/#!Advanced-OpenGL/Cubemaps
-    vec4 worldPosition = model * vPosition;
-    vec3 camPosition = vec3 (0, 0, 1);
-    vec3 worldNormal = normalize(normalMatrix * vNormal);
+    vec4 eyePosition = view * model * vPosition ;
+    reflectDir = vec3 ( vPosition );
+    gl_Position = projection * eyePosition ;
 
-    reflectDir = reflect(normalize(worldPosition.xyz - camPosition), worldNormal.xyz);
-
-    gl_Position = projection * view * worldPosition;
 }

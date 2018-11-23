@@ -40,10 +40,29 @@ void emitEdgeQuad(vec3 e0, vec3 e1)
 
     GIsEdge = 1;   // This is part of the sil. edge
 
-    gl_Position = vec4( e0.xy - ext, e0.z, 1.0 ); EmitVertex();
-    gl_Position = vec4( e0.xy - n - ext, e0.z, 1.0 ); EmitVertex();
-    gl_Position = vec4( e1.xy + ext, e1.z, 1.0 ); EmitVertex();
-    gl_Position = vec4( e1.xy - n + ext, e1.z, 1.0 ); EmitVertex();
+    gl_Position = vec4( e0.xy - ext, e0.z, 1.0 );
+    frag.fN = vertices[0].fN;
+    frag.fE = vertices[0].fE;
+    frag.fL = vertices[0].fL;
+    EmitVertex();
+
+    gl_Position = vec4( e0.xy - n - ext, e0.z, 1.0 );
+    frag.fN = vertices[1].fN;
+    frag.fE = vertices[1].fE;
+    frag.fL = vertices[1].fL;
+    EmitVertex();
+
+    gl_Position = vec4( e1.xy + ext, e1.z, 1.0 );
+    frag.fN = vertices[2].fN;
+    frag.fE = vertices[2].fE;
+    frag.fL = vertices[2].fL;
+    EmitVertex();
+
+    gl_Position = vec4( e1.xy - n + ext, e1.z, 1.0 );
+    frag.fN = vertices[3].fN;
+    frag.fE = vertices[3].fE;
+    frag.fL = vertices[3].fL;
+    EmitVertex();
 
     EndPrimitive();
 }
@@ -77,6 +96,13 @@ void main()
 
     EmitVertex();
 
+    gl_Position = gl_in[1].gl_Position;
+    frag.fN = vertices[1].fN;
+    frag.fE = vertices[1].fE;
+    frag.fL = vertices[1].fL;
+
+    EmitVertex();
+
     GNormal = VNormal[2];
     GPosition = VPosition[2];
     gl_Position = gl_in[2].gl_Position;
@@ -87,6 +113,13 @@ void main()
 
     EmitVertex();
 
+    gl_Position = gl_in[3].gl_Position;
+    frag.fN = vertices[3].fN;
+    frag.fE = vertices[3].fE;
+    frag.fL = vertices[3].fL;
+
+    EmitVertex();
+
     GNormal = VNormal[4];
     GPosition = VPosition[4];
     gl_Position = gl_in[4].gl_Position;
@@ -94,6 +127,13 @@ void main()
     frag.fN = vertices[4].fN;
     frag.fE = vertices[4].fE;
     frag.fL = vertices[4].fL;
+
+    EmitVertex();
+
+    gl_Position = gl_in[5].gl_Position;
+    frag.fN = vertices[5].fN;
+    frag.fE = vertices[5].fE;
+    frag.fL = vertices[5].fL;
 
     EmitVertex();
 

@@ -36,6 +36,8 @@ void OpenGLWidget::initializeGL()
     model = std::make_shared<Model>(this);
     enemy = std::make_shared<Model>(this);
     bullet = std::make_shared<Model>(this);
+    aim = std::make_shared<Model>(this);
+
     sun = std::make_shared<Model>(this);
 
     worldBox = std::make_shared<WorldBox>(this);
@@ -61,11 +63,15 @@ void OpenGLWidget::initializeGL()
     enemy->material.ambient = QVector4D(1.0f, 0.02f, 0.02f, 1.0f);
     model->material.ambient = QVector4D(0.02f, 0.02f, 1.0f, 1.0f);
     bullet->material.ambient = QVector4D(0.02f, 1.0f, 0.02f, 1.0f);
+    aim->material.ambient = QVector4D(1.0f, 1.0f, 0.02f, 1.0f);
 
     model->readOFFFile(":/models/models/player_ship_grey.off", "toon2");
     enemy->readOFFFile(":/models/models/enemy_ship.off", "toon2");
     bullet->readOFFFile(":/models/models/cube.off", "toon2");
-    sun->readOFFFile(":/models/models/sphere2.off", "texture");
+
+    aim->readOFFFile(":/models/models/cube.off", "phong");
+
+    sun->readOFFFile(":/models/models/sphere2.off", "toon2");
 
     worldBox->readOFFFile(":/models/models/cube.off");
 
@@ -105,12 +111,23 @@ void OpenGLWidget::paintGL()
         bullet->drawModel(pos.x(), pos.y(), pos.z(), QVector3D(0.02f, 0.02f, 0.5f));
     }
 
+    if (!aim)
+        return;
+
+    aim->setLightAndCamera(light, camera);
+
+    aim->drawModel(
+                modelPos.x(), modelPos.y() + 0.18, modelPos.z(),
+                QVector3D(0.005, 0.005, 0.005),
+                QVector3D(0, 0, 0),
+                false);
+
     if(!sun)
         return;
 
     sun->setLightAndCamera(light, camera);
     // load worldBox
-    sun->drawModel(15, 15, -100, QVector3D(30, 30, 30), QVector3D(0, 0, 0), false);
+    sun->drawModel(15, 15, -100, QVector3D(30, 30, 30), QVector3D(0, 0, 0));
 
     QImage sunTex;
     sunTex.load(QString(":/textures/textures/sun.jpg"));
@@ -123,7 +140,7 @@ void OpenGLWidget::paintGL()
     worldBox->setLightAndCamera(light, camera);
 
     // load worldBox
-    worldBox->drawModel(worldBoxPos.x(), worldBoxPos.y(), worldBoxPos.z(), 1000);
+    worldBox->drawModel(worldBoxPos.x(), worldBoxPos.y(), worldBoxPos.z(), 200, worldBoxRotation);
 
 
 }
@@ -143,78 +160,52 @@ void OpenGLWidget::animate()
     if(!isPlayerDead) {
         float elapsedTime = time.restart() / 1000.0f;
 
-        score += elapsedTime;
+        score += elapsedTime;        
 
         float xBorder = 1.8f;
         float yBorder = 0.8f;
 
-        // move player
-//        if (modelPos.x() < -xBorder) {
 
-//            modelPos.setX(-xBorder);
+        modelPos.setX(modelPos.x() + (playerPosXOffsetLeft + playerPosXOffsetRight) * elapsedTime);
 
-//            camera.eye.setX(-xBorder);
-//            camera.center.setX(-xBorder);
-//            camera.computeViewMatrix();
-//        } else if (modelPos.x() > xBorder){
+        camera.eye.setX(camera.eye.x() + (playerPosXOffsetLeft + playerPosXOffsetRight) * elapsedTime);
+        camera.center.setX(camera.center.x() + (playerPosXOffsetLeft + playerPosXOffsetRight) * elapsedTime);
+        camera.computeViewMatrix();
 
-//            modelPos.setX(xBorder);
+        modelPos.setY(modelPos.y() + (playerPosYOffsetUp + playerPosYOffsetDown) * elapsedTime);
 
-//            camera.eye.setX(xBorder);
-//            camera.center.setX(xBorder);
-//            camera.computeViewMatrix();
-//        } else {
+        camera.eye.setY(camera.eye.y() + (playerPosYOffsetUp + playerPosYOffsetDown) * elapsedTime);
+        camera.center.setY(camera.center.y() + (playerPosYOffsetUp + playerPosYOffsetDown) * elapsedTime);
+        camera.computeViewMatrix();
 
-            modelPos.setX(modelPos.x() + (playerPosXOffsetLeft + playerPosXOffsetRight) * elapsedTime);
-
-            camera.eye.setX(camera.eye.x() + (playerPosXOffsetLeft + playerPosXOffsetRight) * elapsedTime);
-            camera.center.setX(camera.center.x() + (playerPosXOffsetLeft + playerPosXOffsetRight) * elapsedTime);
-            camera.computeViewMatrix();
-//        }
-
-//        if (modelPos.y() < -yBorder) {
-//            modelPos.setY(-yBorder);
-
-//            camera.eye.setY(-yBorder + 0.2f);
-//            camera.center.setY(-yBorder);
-//            camera.computeViewMatrix();
-//        } else if (modelPos.y() > yBorder){
-//            modelPos.setY(yBorder);
-
-//            camera.eye.setY(yBorder + 0.2f);
-//            camera.center.setY(yBorder);
-//            camera.computeViewMatrix();
-//        } else {
-            modelPos.setY(modelPos.y() + (playerPosYOffsetUp + playerPosYOffsetDown) * elapsedTime);
-
-            camera.eye.setY(camera.eye.y() + (playerPosYOffsetUp + playerPosYOffsetDown) * elapsedTime);
-            camera.center.setY(camera.center.y() + (playerPosYOffsetUp + playerPosYOffsetDown) * elapsedTime);
-            camera.computeViewMatrix();
-//        }
 
         // rotate player X
 
         if (modelXState == TurningLeft && modelRotation.y() < 10)
         {
             modelRotation.setY(modelRotation.y() + elapsedTime * 100);
+            camera.up.setX(camera.up.x() + elapsedTime/2);
         }
         if (modelXState == StabilizingLeft && modelRotation.y() > 0)
         {
             modelRotation.setY(modelRotation.y() - elapsedTime * 100);
+            camera.up.setX(camera.up.x() - elapsedTime/2);
         }
 
         if (modelXState == TurningRight && modelRotation.y() > -10)
         {
             modelRotation.setY(modelRotation.y() - elapsedTime * 100);
+            camera.up.setX(camera.up.x() - elapsedTime/2);
         }
         if (modelXState == StabilizingRight && modelRotation.y() < 0)
         {
             modelRotation.setY(modelRotation.y() + elapsedTime * 100);
+            camera.up.setX(camera.up.x() + elapsedTime/2);
         }
         if (modelRotation.y() == 0.0f && (modelXState == StabilizingLeft || modelXState == StabilizingRight))
         {
             modelXState = XIdle;
-        }
+        }        
 
         // rotate player Y
         if (modelYState == TurningUp && modelRotation.x() < 100)

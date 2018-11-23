@@ -59,7 +59,7 @@ public:
     void loadTextureLayer(const QImage &image);
     void loadCubeMapTexture();
 
-    void drawModel(float x, float y, float z, float scale = 1);
+    void drawModel(float x, float y, float z, float scale = 1, QVector3D rotation = QVector3D(0, 0, 0));
     void setLightAndCamera(Light light, Camera camera);
 
     QMatrix4x4 modelMatrix;

@@ -190,10 +190,15 @@ void WorldBox::createShaders()
     fs.close();
 }
 
-void WorldBox::drawModel(float x, float y, float z, float scale)
+void WorldBox::drawModel(float x, float y, float z, float scale, QVector3D rotation)
 {
     modelMatrix.setToIdentity();
     modelMatrix.translate(x, y, z);
+
+    modelMatrix.rotate(rotation.x(), QVector3D(1, 0, 0));
+    modelMatrix.rotate(rotation.y(), QVector3D(0, 1, 0));
+    modelMatrix.rotate(rotation.z(), QVector3D(0, 0, 1));
+
     modelMatrix.scale(scale, scale, scale);
     modelMatrix.translate(-midPoint);
 
@@ -412,13 +417,21 @@ void WorldBox::loadCubeMapTexture()
     QImage posz = QImage(QString(folderName).append("/posz.jpg")).convertToFormat(QImage::Format_RGBA8888 );
     */
 
+    QImage negx = QImage(QString(":/world/world/negx.png"));
+    QImage negy = QImage(QString(":/world/world/negy.png"));
+    QImage negz = QImage(QString(":/world/world/negz.png"));
+    QImage posx = QImage(QString(":/world/world/posx.png"));
+    QImage posy = QImage(QString(":/world/world/posy.png"));
+    QImage posz = QImage(QString(":/world/world/posz.png"));
+
+    /*
     QImage negx = QImage(QString(":/textures/textures/space_light1.jpg")).convertToFormat(QImage::Format_RGBA8888 );
     QImage negy = QImage(QString(":/textures/textures/space_light1.jpg")).convertToFormat(QImage::Format_RGBA8888 );
     QImage negz = QImage(QString(":/textures/textures/space_light1.jpg")).convertToFormat(QImage::Format_RGBA8888 );
     QImage posx = QImage(QString(":/textures/textures/space_light1.jpg")).convertToFormat(QImage::Format_RGBA8888 );
     QImage posy = QImage(QString(":/textures/textures/space_light1.jpg")).convertToFormat(QImage::Format_RGBA8888 );
     QImage posz = QImage(QString(":/textures/textures/space_light1.jpg")).convertToFormat(QImage::Format_RGBA8888 );
-
+    */
 
     negx = negx.convertToFormat(QImage::Format_RGBA8888);
     negy = negy.convertToFormat(QImage::Format_RGBA8888);

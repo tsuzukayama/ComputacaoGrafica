@@ -60,7 +60,7 @@ void OpenGLWidget::initializeGL()
         enemyPos[i] = pos;
     }
 
-    //enemy->material.ambient = QVector4D(1.0f, 0.02f, 0.02f, 1.0f);
+    enemy->material.ambient = QVector4D(1.0f, 0.02f, 0.02f, 1.0f);
     model->material.ambient = QVector4D(0.02f, 0.02f, 1.0f, 1.0f);
     bullet->material.ambient = QVector4D(0.02f, 1.0f, 0.02f, 1.0f);
     aim->material.ambient = QVector4D(1.0f, 1.0f, 0.02f, 1.0f);

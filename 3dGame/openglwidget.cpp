@@ -60,7 +60,7 @@ void OpenGLWidget::initializeGL()
         enemyPos[i] = pos;
     }
 
-    enemy->material.ambient = QVector4D(1.0f, 0.02f, 0.02f, 1.0f);
+    //enemy->material.ambient = QVector4D(1.0f, 0.02f, 0.02f, 1.0f);
     model->material.ambient = QVector4D(0.02f, 0.02f, 1.0f, 1.0f);
     bullet->material.ambient = QVector4D(0.02f, 1.0f, 0.02f, 1.0f);
     aim->material.ambient = QVector4D(1.0f, 1.0f, 0.02f, 1.0f);
@@ -71,7 +71,7 @@ void OpenGLWidget::initializeGL()
 
     aim->readOFFFile(":/models/models/cube.off", "phong");
 
-    enemyBoss->readOFFFile(":/models/models/enemy_boss.off", "toon2");
+    enemyBoss->readOFFFile(":/models/models/sphere2.off", "toon2");
 
     worldBox->readOFFFile(":/models/models/cube.off");
 
@@ -98,7 +98,7 @@ void OpenGLWidget::paintGL()
     // make enemies red
 
     for(int i = 0; i < floor(numEnemies); ++i) {
-        enemy->drawModel(enemyPos[i].x(), enemyPos[i].y(), enemyPos[i].z(), QVector3D(0.3f, 0.3f, 0.3f));
+        enemy->drawModel(enemyPos[i].x(), enemyPos[i].y(), enemyPos[i].z(), QVector3D(0.3f, 0.3f, 0.3f), QVector3D(1, 1, 1));
     }
 
     // load bullet
@@ -127,7 +127,7 @@ void OpenGLWidget::paintGL()
 
     enemyBoss->setLightAndCamera(light, camera);
     // load worldBox
-    enemyBoss->drawModel(15, 0, -100, QVector3D(50, 50, 50), QVector3D(0, 0, 0));
+    enemyBoss->drawModel(15, 0, -200, QVector3D(50, 50, 50), QVector3D(0, 0, 0));
 
     QImage sunTex;
     sunTex.load(QString(":/textures/textures/sun.jpg"));
@@ -283,8 +283,8 @@ void OpenGLWidget::animate()
                 float x = randomFloat(xMin, xMax);
                 float y = randomFloat(yMin, yMax);
 
-                // float x = 0;
-                // float y = 0;
+                //float x = 0;
+                //float y = 0;
 
                 float z = -((qrand() / (float)RAND_MAX) * 200.0f);
 

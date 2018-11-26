@@ -48,6 +48,7 @@
         <file>models/sphere2.off</file>
         <file>models/destroyer.off</file>
         <file>models/enemy_boss.off</file>
+        <file>models/enemy2.off</file>
     </qresource>
     <qresource prefix="/world">
         <file>world/negx.png</file>

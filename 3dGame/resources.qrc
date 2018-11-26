@@ -42,13 +42,12 @@
     </qresource>
     <qresource prefix="/models">
         <file>models/cube.off</file>
-        <file>models/m1119.off</file>
-        <file>models/spacecraft.off</file>
         <file>models/enemy_ship.off</file>
         <file>models/player_ship.off</file>
-        <file>models/player_ship_glass.off</file>
         <file>models/player_ship_grey.off</file>
         <file>models/sphere2.off</file>
+        <file>models/destroyer.off</file>
+        <file>models/enemy_boss.off</file>
     </qresource>
     <qresource prefix="/world">
         <file>world/negx.png</file>

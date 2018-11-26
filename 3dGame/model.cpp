@@ -242,6 +242,7 @@ void Model::drawModel(float x, float y, float z, QVector3D scale, QVector3D rota
 {
     modelMatrix.setToIdentity();
     modelMatrix.translate(x, y, z);
+
     modelMatrix.rotate(rotation.x(), QVector3D(1, 0, 0));
     modelMatrix.rotate(rotation.y(), QVector3D(0, 1, 0));
     modelMatrix.rotate(rotation.z(), QVector3D(0, 0, 1));

@@ -38,7 +38,7 @@ protected:
     void resizeGL(int width, int height);
     void paintGL();
 
-    std::shared_ptr<Model> model, enemy, bullet, sun, aim;
+    std::shared_ptr<Model> model, enemy, bullet, enemyBoss, aim;
     std::shared_ptr<WorldBox> worldBox;
 
 

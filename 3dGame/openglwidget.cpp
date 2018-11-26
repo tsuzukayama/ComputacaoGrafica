@@ -38,7 +38,7 @@ void OpenGLWidget::initializeGL()
     bullet = std::make_shared<Model>(this);
     aim = std::make_shared<Model>(this);
 
-    sun = std::make_shared<Model>(this);
+    enemyBoss = std::make_shared<Model>(this);
 
     worldBox = std::make_shared<WorldBox>(this);
 
@@ -67,11 +67,11 @@ void OpenGLWidget::initializeGL()
 
     model->readOFFFile(":/models/models/player_ship_grey.off", "toon2");
     enemy->readOFFFile(":/models/models/enemy_ship.off", "toon2");
-    bullet->readOFFFile(":/models/models/cube.off", "toon2");
+    bullet->readOFFFile(":/models/models/cube.off",  "toon2");
 
     aim->readOFFFile(":/models/models/cube.off", "phong");
 
-    sun->readOFFFile(":/models/models/sphere2.off", "toon2");
+    enemyBoss->readOFFFile(":/models/models/enemy_boss.off", "toon2");
 
     worldBox->readOFFFile(":/models/models/cube.off");
 
@@ -122,17 +122,17 @@ void OpenGLWidget::paintGL()
                 QVector3D(0, 0, 0),
                 false);
 
-    if(!sun)
+    if(!enemyBoss)
         return;
 
-    sun->setLightAndCamera(light, camera);
+    enemyBoss->setLightAndCamera(light, camera);
     // load worldBox
-    sun->drawModel(15, 15, -100, QVector3D(30, 30, 30), QVector3D(0, 0, 0));
+    enemyBoss->drawModel(15, 0, -100, QVector3D(50, 50, 50), QVector3D(0, 0, 0));
 
     QImage sunTex;
     sunTex.load(QString(":/textures/textures/sun.jpg"));
     sunTex = sunTex.convertToFormat(QImage::Format_RGBA8888);
-    sun->loadTexture(sunTex);
+    enemyBoss->loadTexture(sunTex);
 
     if(!worldBox)
         return;

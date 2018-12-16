@@ -1,75 +1,90 @@
 #ifndef OPENGLWIDGET_H
 #define OPENGLWIDGET_H
 
-#include <QtOpenGL>
+#include <QWidget>
+#include <QOpenGLWidget>
 #include <QOpenGLExtraFunctions>
 
-#include <memory>
 
-#define NUM_STARS 1
+#include "light.h"
+#include "model.h"
+#include "camera.h"
+#include "worldbox.h"
 
-class OpenGLWidget : public QOpenGLWidget, public QOpenGLExtraFunctions
+#define NUM_MAX_ENEMIES 10000
+#define NUM_MAX_BULLETS 10
+
+class OpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
 {
     Q_OBJECT
 
 public:
-    explicit OpenGLWidget(QWidget *parent = nullptr);
-
-    void createVBOs();
-    void createShaders();
-
-    void destroyVBOs();
-    void destroyShaders();
-
-    void readOFFFile(const QString &fileName);
-    void normalizeModel();
-    void createNormals();
-
-protected:
-    void initializeGL();
-    void resizeGL(int width, int height);
-    void paintGL();    
-
-private:
-    GLuint vboVertices = 0;
-    GLuint vboNormals = 0;
-    GLuint vboIndices = 0;
-
-    GLuint vao = 0;
-    GLuint shaderProgram;
-
-    unsigned int numVertices = 0, numFaces = 0;
-    std::unique_ptr<QVector4D []> vertices = nullptr;
-    std::unique_ptr<QVector3D []> normals = nullptr;
-    std::unique_ptr<unsigned int[]> indices = nullptr;
-
-    QMatrix4x4 mProjection;
-
-    QVector3D starPos[NUM_STARS], starRot[NUM_STARS];
-
-    QVector3D singleStarPos, singleStarRot;
+    OpenGLWidget(QWidget *parent = nullptr);
 
     QTimer timer;
-    QTime time1, time2;
-
-    double fpsCounter = 0;
-    float angle = 0;
-
-    float playerPosXOffsetLeft = 0; // offset Left for player
-    float playerPosXOffsetRight = 0; // offset Right for player
-
-    float playerPosYOffsetUp = 0; // offset Left for player
-    float playerPosYOffsetDown = 0; // offset Right for player
+    QTime time, bulletTime;
 
 signals:
-    void setLabelText(QString);
+    void statusBarMessage(QString);
+    void enableComboShaders(bool);
+    void changeScore(QString);
+    void changeMaxScore(QString);
 
 public slots:
     void animate();
 
 protected:
+    void initializeGL();
+    void resizeGL(int width, int height);
+    void paintGL();
+
+    std::shared_ptr<Model> model, enemy, bullet, enemyBoss, aim;
+    std::shared_ptr<WorldBox> worldBox;
+
+
+    enum XState { XIdle, TurningLeft, StabilizingLeft, TurningRight, StabilizingRight };
+    enum YState { YIdle, TurningUp, StabilizingUp, TurningDown, StabilizingDown };
+
+    QVector3D modelPos = QVector3D(0, 0, 0);
+    QVector3D modelRotation = QVector3D(90, 0, 90);
+
+    XState modelXState;
+    YState modelYState;
+
+    QVector3D enemyPos[NUM_MAX_ENEMIES];
+
+    std::vector<QVector3D> bulletPos;
+
+    // QVector3D worldBoxPos = QVector3D(0, -645.2f, -1270.0f);
+    QVector3D worldBoxPos = QVector3D(0, 0, 0);
+    QVector3D worldBoxRotation = QVector3D(0, 0, 0);
+
+
+    float numEnemies; // number of enemies
+    float score; // Number of hits
+    float maxScore;
+    float speed; // game speed
+    float bulletSpeed; // bullet speed
+    float playerSpeed; // player speed
+
+    boolean isPlayerDead; // cehck if player is dead
+    boolean shooting; // check if new bullet was fired
+
+    Light light;
+    Camera camera;
+
+    float playerPosXOffsetLeft = 0, playerPosXOffsetRight = 0, playerPosYOffsetDown = 0, playerPosYOffsetUp = 0; // offset Right for player
+
+    void updateScene(int);
     void keyPressEvent(QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
+    void resetGame();
+    float randomFloat(float min, float max);
+
+    void mouseMoveEvent(QMouseEvent *event);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
+    void wheelEvent(QWheelEvent *event);    
 };
 
 #endif // OPENGLWIDGET_H

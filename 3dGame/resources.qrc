@@ -1,13 +1,61 @@
 <RCC>
+    <qresource prefix="/textures">
+        <file>cube/negx.jpg</file>
+        <file>cube/negy.jpg</file>
+        <file>cube/negz.jpg</file>
+        <file>cube/posx.jpg</file>
+        <file>cube/posy.jpg</file>
+        <file>cube/posz.jpg</file>
+        <file>textures/player_tex.jpeg</file>
+        <file>textures/wheat.png</file>
+        <file>textures/space.jpg</file>
+        <file>textures/sun.jpg</file>
+        <file>textures/space_light.jpg</file>
+        <file>textures/space_light1.jpg</file>
+    </qresource>
     <qresource prefix="/shaders">
-        <file>vshader.glsl</file>
-        <file>fshader.glsl</file>
+        <file>shaders/fcubemap.glsl</file>
+        <file>shaders/fflat.glsl</file>
+        <file>shaders/fgouraud.glsl</file>
+        <file>shaders/fnormal.glsl</file>
+        <file>shaders/fnormalmap.glsl</file>
+        <file>shaders/fphong.glsl</file>
+        <file>shaders/fshader1.glsl</file>
+        <file>shaders/ftex2.glsl</file>
+        <file>shaders/ftexture.glsl</file>
+        <file>shaders/vcubemap.glsl</file>
+        <file>shaders/vflat.glsl</file>
+        <file>shaders/vgouraud.glsl</file>
+        <file>shaders/vnormal.glsl</file>
+        <file>shaders/vnormalmap.glsl</file>
+        <file>shaders/vphong.glsl</file>
+        <file>shaders/vshader1.glsl</file>
+        <file>shaders/vtex2.glsl</file>
+        <file>shaders/vtexture.glsl</file>
+        <file>shaders/ftoon.glsl</file>
+        <file>shaders/vtoon.glsl</file>
+        <file>shaders/gphong.glsl</file>
+        <file>shaders/gtexture.glsl</file>
+        <file>shaders/gtoon2.glsl</file>
+        <file>shaders/ftoon2.glsl</file>
+        <file>shaders/vtoon2.glsl</file>
     </qresource>
     <qresource prefix="/models">
-        <file>cube.off</file>
-        <file>tet3dcc2.off</file>
-        <file>teapot.off</file>
-        <file>bunny.off</file>
-        <file>m1119.off</file>
+        <file>models/cube.off</file>
+        <file>models/enemy_ship.off</file>
+        <file>models/player_ship.off</file>
+        <file>models/player_ship_grey.off</file>
+        <file>models/sphere2.off</file>
+        <file>models/destroyer.off</file>
+        <file>models/enemy_boss.off</file>
+        <file>models/enemy2.off</file>
+    </qresource>
+    <qresource prefix="/world">
+        <file>world/negx.png</file>
+        <file>world/negy.png</file>
+        <file>world/negz.png</file>
+        <file>world/posx.png</file>
+        <file>world/posy.png</file>
+        <file>world/posz.png</file>
     </qresource>
 </RCC>
